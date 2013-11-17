@@ -7,4 +7,5 @@ Initial version.
 
 - command dispatch
 - data version
+- data help
 - data list
