@@ -14,7 +14,7 @@ func main() {
 	flag.Parse()
 
 	if DEBUG {
-		fmt.Println("debugging on")
+		DOut("debugging on\n")
 	}
 
 	RegisterCommands()
@@ -24,4 +24,12 @@ func main() {
 	}
 
 	DispatchCommand(os.Args[1])
+}
+
+func DErr(format string, a ...interface{}) {
+	fmt.Fprintf(os.Stderr, format, a...)
+}
+
+func DOut(format string, a ...interface{}) {
+	fmt.Fprintf(os.Stdout, format, a...)
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 )
 
@@ -10,10 +9,10 @@ func HelpCmd() {
 }
 
 func Usage() {
-	fmt.Fprintf(os.Stderr, usageStr1)
+	DErr(usageStr1)
 	PrintCommands()
-	fmt.Fprintf(os.Stderr, "\n")
-	// fmt.Fprintf(os.Stderr, usageStr2)
+	DErr("\n")
+	// DErr(usageStr2)
 
 	os.Exit(1)
 }

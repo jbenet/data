@@ -1,10 +1,5 @@
 package main
 
-import (
-	"fmt"
-	"os"
-)
-
 type Command struct {
 	name    string
 	desc    string
@@ -25,21 +20,21 @@ func RegisterCommands() {
 
 func PrintCommands() {
 	for _, cmd := range commands {
-		fmt.Fprintf(os.Stderr, "    %-10.10s%s\n", cmd.name, cmd.desc)
+		DErr("    %-10.10s%s\n", cmd.name, cmd.desc)
 	}
 }
 
 func DispatchCommand(name string) {
 
 	if DEBUG {
-		fmt.Fprintf(os.Stderr, "dispatching command %s\n", name)
+		DErr("dispatching command %s\n", name)
 	}
 
 	cmd, ok := commands[name]
 	if ok {
 		cmd.handler()
 	} else {
-		fmt.Fprintf(os.Stderr, "data: unknown command \"%s\"\n", name)
-		fmt.Fprintf(os.Stderr, "Run `data help` for usage.\n")
+		DErr("data: unknown command \"%s\"\n", name)
+		DErr("Run `data help` for usage.\n")
 	}
 }
