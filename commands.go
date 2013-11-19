@@ -16,6 +16,7 @@ func RegisterCommands() {
 	RC := RegisterCommand
 	RC("version", "Show data version information.", VersionCmd)
 	RC("help", "Show usage information.", HelpCmd)
+	RC("list", "List installed datasets.", ListCmd)
 }
 
 func PrintCommands() {
