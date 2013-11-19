@@ -19,21 +19,22 @@ func ListDatasets(dir string) error {
 		return err
 	}
 
+	// for each author dir
 	for _, a := range authors {
-
 		author := path.Join(dir, a.Name())
 		datasets, err := ioutil.ReadDir(author)
 		if err != nil {
 			continue
 		}
 
+		// for each dataset dir
 		for _, d := range datasets {
 			dataset := path.Join(author, d.Name())
 			datafile := &Datafile{path: path.Join(dataset, "Datafile")}
 
 			err := datafile.ReadFile()
 			if err != nil {
-				DErr("%s\n", err)
+				DErr("Error: %s\n", err)
 				continue
 			}
 
