@@ -4,6 +4,7 @@ import (
 	"io"
 	"io/ioutil"
 	"launchpad.net/goyaml"
+	"path"
 )
 
 /*
@@ -47,6 +48,17 @@ type DatafileContents struct {
 type Datafile struct {
 	path             string "-" // YAML ignore
 	DatafileContents ",inline"
+}
+
+const DatasetDir = "datasets"
+
+func NewDatafile(dataset string) (*Datafile, error) {
+	df := &Datafile{path: path.Join(DatasetDir, dataset, "Datafile")}
+	err := df.ReadFile()
+	if err != nil {
+		return nil, err
+	}
+	return df, nil
 }
 
 // Serializing in/out

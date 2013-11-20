@@ -5,8 +5,6 @@ import (
 	"path"
 )
 
-const DatasetDir = "datasets"
-
 func ListCmd([]string) {
 	ListDatasets(DatasetDir)
 }
@@ -29,10 +27,8 @@ func ListDatasets(dir string) error {
 
 		// for each dataset dir
 		for _, d := range datasets {
-			dataset := path.Join(author, d.Name())
-			datafile := &Datafile{path: path.Join(dataset, "Datafile")}
-
-			err := datafile.ReadFile()
+			dataset := path.Join(a.Name(), d.Name())
+			datafile, err := NewDatafile(dataset)
 			if err != nil {
 				DErr("Error: %s\n", err)
 				continue
