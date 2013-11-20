@@ -1,14 +1,16 @@
 package main
 
+type CommandFunc func([]string)
+
 type Command struct {
 	name    string
 	desc    string
-	handler func()
+	handler CommandFunc
 }
 
 var commands = map[string]Command{}
 
-func RegisterCommand(name string, desc string, handler func()) {
+func RegisterCommand(name string, desc string, handler CommandFunc) {
 	commands[name] = Command{name, desc, handler}
 }
 
@@ -25,7 +27,7 @@ func PrintCommands() {
 	}
 }
 
-func DispatchCommand(name string) {
+func DispatchCommand(name string, args []string) {
 
 	if DEBUG {
 		DErr("dispatching command %s\n", name)
@@ -33,7 +35,7 @@ func DispatchCommand(name string) {
 
 	cmd, ok := commands[name]
 	if ok {
-		cmd.handler()
+		cmd.handler(args)
 	} else {
 		DErr("data: unknown command \"%s\"\n", name)
 		DErr("Run `data help` for usage.\n")

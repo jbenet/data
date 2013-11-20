@@ -4,7 +4,7 @@ import (
 	"os"
 )
 
-func HelpCmd() {
+func HelpCmd([]string) {
 	Usage()
 }
 

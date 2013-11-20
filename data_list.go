@@ -7,7 +7,7 @@ import (
 
 const DatasetDir = "datasets"
 
-func ListCmd() {
+func ListCmd([]string) {
 	ListDatasets(DatasetDir)
 }
 

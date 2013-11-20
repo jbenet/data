@@ -23,7 +23,7 @@ func main() {
 		Usage()
 	}
 
-	DispatchCommand(os.Args[1])
+	DispatchCommand(os.Args[1], os.Args[2:])
 }
 
 func DErr(format string, a ...interface{}) {
