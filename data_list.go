@@ -38,7 +38,7 @@ func ListDatasets(dir string) error {
 				continue
 			}
 
-			DOut("%s\n", datafile.Handle)
+			DOut("%s @ %s\n", datafile.Handle.Path, datafile.Handle.Version)
 		}
 	}
 

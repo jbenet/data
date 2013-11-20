@@ -30,7 +30,7 @@ import (
 
 // Serializbale into YAML
 type DatafileContents struct {
-	Handle string
+	Handle Handle ",inline"
 	Title  string ",omitempty"
 
 	Dependencies []string          ",omitempty"
@@ -56,7 +56,14 @@ func (d *Datafile) Marshal() ([]byte, error) {
 }
 
 func (d *Datafile) Unmarshal(buf []byte) error {
-	return goyaml.Unmarshal(buf, d)
+	err := goyaml.Unmarshal(buf, d)
+	if err != nil {
+		return err
+	}
+
+	// need to ensure handle is initialized...
+	d.Handle.SetString(d.Handle.Handle)
+	return nil
 }
 
 func (d *Datafile) Write(w io.Writer) error {
