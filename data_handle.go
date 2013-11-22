@@ -7,7 +7,7 @@ import (
 
 // <author>/<name>[.<format>][@<tag>]
 type Handle struct {
-	Handle string
+	Dataset string
 
 	Author  string "-"
 	Name    string "-"
@@ -47,7 +47,7 @@ func (d *Handle) SetString(s string) error {
 		fmt_idx = ver_idx // no format in handle.
 	}
 
-	d.Handle = s
+	d.Dataset = s
 
 	// parts
 	d.Author = slice(s, 0, nam_idx)
@@ -80,7 +80,7 @@ func MaxInt(x, y int) (r int) {
 }
 
 func (d *Handle) GoString() string {
-	return d.Handle
+	return d.Dataset
 }
 
 func HandleError(handle string, problem string) error {

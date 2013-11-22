@@ -74,7 +74,7 @@ func (d *Datafile) Unmarshal(buf []byte) error {
 	}
 
 	// need to ensure handle is initialized...
-	d.Handle.SetString(d.Handle.Handle)
+	d.Handle.SetString(d.Handle.Dataset)
 	return nil
 }
 
