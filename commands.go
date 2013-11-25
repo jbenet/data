@@ -16,10 +16,10 @@ func RegisterCommand(name string, desc string, handler CommandFunc) {
 
 func RegisterCommands() {
 	RC := RegisterCommand
-	RC("version", "Show data version information.", VersionCmd)
-	RC("help", "Show usage information.", HelpCmd)
 	RC("list", "List installed datasets.", ListCmd)
 	RC("info", "Show dataset information.", InfoCmd)
+	RC("help", "Show usage information.", HelpCmd)
+	RC("version", "Show data version information.", VersionCmd)
 }
 
 func PrintCommands() {
