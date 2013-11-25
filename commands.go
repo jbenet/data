@@ -16,6 +16,7 @@ func RegisterCommand(name string, desc string, handler CommandFunc) {
 
 func RegisterCommands() {
 	RC := RegisterCommand
+	RC("get", "Download and install dataset.", GetCmd)
 	RC("list", "List installed datasets.", ListCmd)
 	RC("info", "Show dataset information.", InfoCmd)
 	RC("help", "Show usage information.", HelpCmd)
