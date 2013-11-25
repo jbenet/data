@@ -13,7 +13,7 @@ func InfoCmd(args []string) error {
 }
 
 func DatasetInfo(dataset string) error {
-	df, err := NewDatafile(dataset)
+	df, err := NewDatafile(DatafilePath(dataset))
 	if err != nil {
 		return fmt.Errorf("Invalid dataset handle: %s", dataset)
 	}

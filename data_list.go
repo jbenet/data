@@ -28,7 +28,7 @@ func ListDatasets(dir string) error {
 		// for each dataset dir
 		for _, d := range datasets {
 			dataset := path.Join(a.Name(), d.Name())
-			datafile, err := NewDatafile(dataset)
+			datafile, err := NewDatafile(DatafilePath(dataset))
 			if err != nil {
 				DErr("Error: %s\n", err)
 				continue

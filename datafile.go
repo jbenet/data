@@ -52,8 +52,12 @@ type Datafile struct {
 
 const DatasetDir = "datasets"
 
-func NewDatafile(dataset string) (*Datafile, error) {
-	df := &Datafile{path: path.Join(DatasetDir, dataset, "Datafile")}
+func DatafilePath(dataset string) string {
+	return path.Join(DatasetDir, dataset, "Datafile")
+}
+
+func NewDatafile(path string) (*Datafile, error) {
+	df := &Datafile{path: path}
 	err := df.ReadFile()
 	if err != nil {
 		return nil, err
