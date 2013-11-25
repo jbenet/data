@@ -1,6 +1,6 @@
 package main
 
-type CommandFunc func([]string)
+type CommandFunc func([]string) error
 
 type Command struct {
 	name    string
@@ -36,7 +36,10 @@ func DispatchCommand(name string, args []string) {
 
 	cmd, ok := commands[name]
 	if ok {
-		cmd.handler(args)
+		err := cmd.handler(args)
+		if err != nil {
+			DErr("data %s: %s\n", name, err)
+		}
 	} else {
 		DErr("data: unknown command \"%s\"\n", name)
 		DErr("Run `data help` for usage.\n")

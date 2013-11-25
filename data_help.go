@@ -4,8 +4,9 @@ import (
 	"os"
 )
 
-func HelpCmd([]string) {
+func HelpCmd([]string) error {
 	Usage()
+	return nil
 }
 
 func Usage() {

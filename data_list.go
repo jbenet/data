@@ -5,8 +5,8 @@ import (
 	"path"
 )
 
-func ListCmd([]string) {
-	ListDatasets(DatasetDir)
+func ListCmd([]string) error {
+	return ListDatasets(DatasetDir)
 }
 
 func ListDatasets(dir string) error {

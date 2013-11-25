@@ -4,13 +4,12 @@ import (
 	"fmt"
 )
 
-func InfoCmd(args []string) {
+func InfoCmd(args []string) error {
 	if len(args) < 1 {
-		DErr("info requires an argument.\n")
-		return
+		return fmt.Errorf("info requires an argument.")
 	}
 
-	DatasetInfo(args[0])
+	return DatasetInfo(args[0])
 }
 
 func DatasetInfo(dataset string) error {
