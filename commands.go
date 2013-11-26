@@ -1,4 +1,4 @@
-package main
+package data
 
 type CommandFunc func([]string) error
 

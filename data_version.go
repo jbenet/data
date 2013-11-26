@@ -1,4 +1,4 @@
-package main
+package data
 
 const VERSION = "0.0.2"
 

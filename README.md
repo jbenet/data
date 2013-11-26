@@ -16,3 +16,7 @@ Setup:
 1. [install go](http://golang.org/doc/install)
 2. run `go build`
 
+Build:
+
+- `data` pkg: `go build` at `/`
+- `data` tool: `go build` at `/data`
