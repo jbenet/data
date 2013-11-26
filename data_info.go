@@ -19,7 +19,10 @@ func DatasetInfo(dataset string) error {
 	}
 
 	buf, err := df.Marshal()
-	DOut("%s\n", buf)
+	if err != nil {
+		return err
+	}
 
+	DOut("%s\n", buf)
 	return nil
 }
