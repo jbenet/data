@@ -1,13 +1,19 @@
 # data - package manager for datasets
 
-
 Imagine installing datasets like this:
 
     data get jbenet/norb
 
 It's about time we used all we've learned making package managers to fix the
-awful data management problem. Read the [designdoc](dev/designdoc.md).
+awful data management problem. Read the [designdoc](dev/designdoc.md) and
+the [roadmap](dev/roadmap.md).
 
+#### Table of Contents
+
+- [Usage](#usage)
+- [Datafile](#datafile)
+- [Development](#development)
+- [About](#about)
 
 ## Usage
 
@@ -92,19 +98,6 @@ sources: [<source urls>]
 ```
 May be outdated. See [datafile.go](datafile.go).
 
-## Development
-
-Setup:
-
-1. [install go](http://golang.org/doc/install)
-2. run `go build`
-
-Build and install:
-
-    make
-    make install
-
-
 ### why yaml?
 
 YAML is much more readable than json. One of `data`'s [design goals
@@ -139,3 +132,59 @@ jump through than necessary. Each step will cause significant dropoff in
 conversion funnels. (Remember, [Apple pays Amazon for 1-click buy](https://www.apple.com/pr/library/2000/09/18Apple-Licenses-Amazon-com-1-Click-Patent-and-Trademark.html)...)
 
 And, since YAML is a superset of json, you can do whatever you want.
+
+
+## Development
+
+Setup:
+
+1. [install go](http://golang.org/doc/install)
+2. run `go build`
+
+Build and install:
+
+    make
+    make install
+
+
+## About
+
+This project started because data management is a massive problem in science*.
+It should be **trivial** to (a) find, (b) download, (c) track, (d) manage,
+(e) re-format, (f) publish, (g) cite, and (h) collaborate on datasets. Data
+management is a problem in other domains (engineering, civics, etc), and `data`
+seeks to be general enough to be used with any kind of dataset, but the target
+use case is saving scientists' time.
+
+Many people agree we direly need the
+"[GitHub for Science](http://static.benet.ai/t/github-for-science.md)";
+scientific collaboration problems are large and numerous.
+It is not entirely clear how, and in which order, to tackle these
+challenges, or even how to drive adoption of solutions across fields. I think
+simple and powerful tools can solve large problems neatly. Perhaps the best
+way to tackle scientific collaboration is by decoupling interconnected
+problems, and building simple tools to solve them. Over time, reliable
+infrastructure can be built with these. git, github, and arxiv are great
+examples to follow.
+
+`data` is an attempt to solve the fairly self-contained issue of downloading,
+publishing, and managing datasets. Let's take what computer scientists have
+learned about version control and distributed collaboration on source code,
+and apply it to the data management problem. Let's build new data tools and
+infrastructure with the software engineering and systems design principles
+that made git, apt, npm, and github successful.
+
+### Acknowledgements
+
+`data` is released under the MIT License.
+
+Authored by [@jbenet](https://github.com/jbenet). Feel free to contact me
+at <juan@benet.ai>, but please post
+[issues](https://github.com/jbenet/data/issues) on github first.
+
+Special thanks to
+[@colah](https://github.com/colah) (original idea and
+[data.py](https://github.com/colah/data)),
+[@damodei](https://github.com/damodei), and
+[@davidad](https://github.com/davidad),
+who provided valuable thoughts + discussion on this problem.
