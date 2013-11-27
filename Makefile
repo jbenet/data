@@ -5,7 +5,7 @@ build:
 	go build
 	cd data && go build
 
-install:
+install: build
 	go install
 	cd data && go install
 
