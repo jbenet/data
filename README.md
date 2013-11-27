@@ -92,6 +92,19 @@ sources: [<source urls>]
 ```
 May be outdated. See [datafile.go](datafile.go).
 
+## Development
+
+Setup:
+
+1. [install go](http://golang.org/doc/install)
+2. run `go build`
+
+Build and install:
+
+    make
+    make install
+
+
 ### why yaml?
 
 YAML is much more readable than json. One of `data`'s [design goals
@@ -126,15 +139,3 @@ jump through than necessary. Each step will cause significant dropoff in
 conversion funnels. (Remember, [Apple pays Amazon for 1-click buy](https://www.apple.com/pr/library/2000/09/18Apple-Licenses-Amazon-com-1-Click-Patent-and-Trademark.html)...)
 
 And, since YAML is a superset of json, you can do whatever you want.
-
-## Development
-
-Setup:
-
-1. [install go](http://golang.org/doc/install)
-2. run `go build`
-
-Build and install:
-
-    make
-    make install
