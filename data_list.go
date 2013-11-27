@@ -19,6 +19,11 @@ func ListDatasets(dir string) error {
 
 	// for each author dir
 	for _, a := range authors {
+		// skip hidden files
+		if a.Name()[0] == '.' {
+			continue
+		}
+
 		author := path.Join(dir, a.Name())
 		datasets, err := ioutil.ReadDir(author)
 		if err != nil {
@@ -27,6 +32,11 @@ func ListDatasets(dir string) error {
 
 		// for each dataset dir
 		for _, d := range datasets {
+			// skip hidden files
+			if d.Name()[0] == '.' {
+				continue
+			}
+
 			dataset := path.Join(a.Name(), d.Name())
 			datafile, err := NewDatafile(DatafilePath(dataset))
 			if err != nil {
