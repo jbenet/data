@@ -1,25 +1,46 @@
 package main
 
 import (
-	"github.com/jbenet/data"
-	"flag"
 	"os"
+	"fmt"
+	"github.com/jbenet/data"
+	"github.com/jteeuwen/go-pkg-optarg"
 )
 
 func main() {
 
-	flag.BoolVar(&data.DEBUG, "debug", false, "Debug mode")
-	flag.Parse()
+	optarg.UsageInfo = fmt.Sprintf("Options usage: %s [options]:", os.Args[0])
+	optarg.Add("h", "help", "Show usage", false)
+	optarg.Add("d", "debug", "Enter debug mode", false)
+	optarg.Add("", "version", "Show version", false)
+	optarg.Parse()
 
-	if data.DEBUG {
-		data.DOut("debugging on\n")
+	forceCommand := ""
+	for opt := range optarg.Parse() {
+		switch opt.Name {
+		case "debug":
+			data.DEBUG = true
+		case "version":
+			forceCommand = "version"
+		case "help":
+			forceCommand = "help"
+		}
 	}
+
+	data.DOut("debugging on\n")
 
 	data.RegisterCommands()
 
-	if len(os.Args) < 2 {
-		data.Usage()
+	if len(forceCommand) > 0 {
+		data.DispatchCommand(forceCommand, []string{})
+		return
 	}
 
-	data.DispatchCommand(os.Args[1], os.Args[2:])
+	args := optarg.Remainder[:len(optarg.Remainder)/2]
+	if len(args) < 1 {
+		data.Usage()
+		return
+	}
+
+	data.DispatchCommand(args[0], args[1:])
 }
