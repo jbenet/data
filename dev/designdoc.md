@@ -1,3 +1,8 @@
+## WARNING - WIP
+
+data is in very early development. 
+This document is too. Track ideas here, and in the [roadmap](roadmap.md)
+
 # data designdoc
 
     data - a package manager for datasets
@@ -26,6 +31,7 @@ engineering concepts and systems:
 
 Dataset management is a mess. There are millions of datasets strewn across the
 internet, encoded in thousands of formats. [more gripes here]
+
 
 ## Design Goals
 
@@ -57,6 +63,9 @@ data must be
 
 ## datadex - data index
 
+(The name datadex is worse than datahub, but datahub seems to be taken by
+a related project. Perhaps collaborate? TODO: talk to datahub people.)
+
 The important power data brings to the table is publishing and downloading
 datasets from a repository, public or private. This is achieved by the use
 of `datadex`, `data`'s sister tool and a simple website. The plan is to run
@@ -74,34 +83,8 @@ entirely different datadex, or even list a secondary one. This is useful in
 case the main datadex is {down, unmaintained, controlled by evil baboons},
 and in case a user wishes to run her own private datadex for private datasets.
 
-### URLs
-
-variables:
-- author: username of dataset author
-- dataset: name id of dataset
-- ref: a version/tag/release name (like refs in git)
-
-Dataset
-
-    http://datadex.io/<author>/<dataset>
-
-Dataset downloadable archive
-
-    http://datadex.io/<author>/<dataset>/archive/<ref>.tar.gz
-
-Dataset Datafile
-
-    http://datadex.io/<author>/<dataset>/blob/<ref>/Datafile
-
-Dataset refs
-
-    http://datadex.io/<author>/<dataset>/refs/
+See more at https://github.com/jbenet/datadex/blob/master/dev/roadmap.md
 
 
-### Dataset tree
 
-/
-|- Datafile
-|- README.md
-|- ...
-|- files
+
