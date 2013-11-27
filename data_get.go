@@ -44,6 +44,7 @@ func DownloadDatasetArchive(archiveURL string) error {
 	}
 
 	// untar the archive
+	DOut("Extracting archive at %s\n", arch)
 	err = ExtractArchive(arch)
 	if err != nil {
 		return err
@@ -152,7 +153,6 @@ func CreateFile(filename string) (*os.File, error) {
 }
 
 // Extraction
-
 func ExtractArchive(filename string) error {
 	file, err := os.Open(filename)
 	if err != nil {
@@ -160,10 +160,17 @@ func ExtractArchive(filename string) error {
 	}
 	defer file.Close()
 
-	cmd := exec.Command("tar", "xf", path.Base(filename))
+	dst := strings.TrimSuffix(filename, ArchiveSuffix)
+	err = os.MkdirAll(dst, 0777)
+	if err != nil {
+		return err
+	}
+
+	dst = path.Base(dst)
+	src := path.Base(filename)
+	cmd := exec.Command("tar", "xzf", src, "--strip-components", "1", "-C", dst)
 	cmd.Dir = path.Dir(filename)
 	out, err := cmd.CombinedOutput()
-
 	if err != nil {
 		outs := string(out)
 		if strings.Contains(outs, "Error opening archive:") {
