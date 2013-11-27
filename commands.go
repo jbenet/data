@@ -25,24 +25,21 @@ func RegisterCommands() {
 
 func PrintCommands() {
 	for _, cmd := range commands {
-		DErr("    %-10.10s%s\n", cmd.name, cmd.desc)
+		Err("    %-10.10s%s\n", cmd.name, cmd.desc)
 	}
 }
 
 func DispatchCommand(name string, args []string) {
-
-	if DEBUG {
-		DErr("dispatching command %s\n", name)
-	}
+	DErr("dispatching command %s\n", name)
 
 	cmd, ok := commands[name]
 	if ok {
 		err := cmd.handler(args)
 		if err != nil {
-			DErr("data %s: %s\n", name, err)
+			Err("data %s: %s\n", name, err)
 		}
 	} else {
-		DErr("data: unknown command \"%s\"\n", name)
-		DErr("Run `data help` for usage.\n")
+		Err("data: unknown command \"%s\"\n", name)
+		Err("Run `data help` for usage.\n")
 	}
 }

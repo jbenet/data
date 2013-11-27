@@ -13,7 +13,7 @@ func ListDatasets(dir string) error {
 	authors, err := ioutil.ReadDir(dir)
 
 	if err != nil {
-		DErr("data: error reading dataset directory \"%s\"\n", dir)
+		Err("data: error reading dataset directory \"%s\"\n", dir)
 		return err
 	}
 
@@ -40,11 +40,11 @@ func ListDatasets(dir string) error {
 			dataset := path.Join(a.Name(), d.Name())
 			datafile, err := NewDatafile(DatafilePath(dataset))
 			if err != nil {
-				DErr("Error: %s\n", err)
+				Err("Error: %s\n", err)
 				continue
 			}
 
-			DOut("    %-20s @%s\n", datafile.Handle.Path, datafile.Handle.Version)
+			Out("    %-20s @%s\n", datafile.Handle.Path, datafile.Handle.Version)
 		}
 	}
 

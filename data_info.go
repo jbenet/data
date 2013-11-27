@@ -23,6 +23,6 @@ func DatasetInfo(dataset string) error {
 		return err
 	}
 
-	DOut("%s\n", buf)
+	Out("%s\n", buf)
 	return nil
 }

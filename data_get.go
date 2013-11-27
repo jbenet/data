@@ -41,7 +41,7 @@ func DownloadDatasetArchive(archiveURL string) error {
 
 	// download the archive
 	// TODO: add local caching of downloads
-	DOut("Downloading archive at %s\n", archiveURL)
+	Out("Downloading archive at %s\n", archiveURL)
 	err := DownloadURLToFile(archiveURL, arch)
 	if err != nil {
 		return err
@@ -60,7 +60,7 @@ func DownloadDatasetArchive(archiveURL string) error {
 	if err != nil {
 		return err
 	}
-	DOut("%s downloaded\n", df.Handle.Dataset)
+	Out("%s downloaded\n", df.Handle.Dataset)
 
 	// move into place
 	new_path := path.Join(DatasetDir, df.Handle.Path)
@@ -79,7 +79,7 @@ func DownloadDatasetArchive(archiveURL string) error {
 	if err != nil {
 		return err
 	}
-	DOut("%s installed\n", df.Handle.Dataset)
+	Out("%s installed\n", df.Handle.Dataset)
 
 	return nil
 }

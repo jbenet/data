@@ -10,10 +10,10 @@ func HelpCmd([]string) error {
 }
 
 func Usage() {
-	DErr(usageStr1)
+	Err(usageStr1)
 	PrintCommands()
-	DErr("\n")
-	// DErr(usageStr2)
+	Err("\n")
+	// Err(usageStr2)
 
 	os.Exit(1)
 }
