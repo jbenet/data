@@ -34,6 +34,7 @@ type DatafileContents struct {
 	Handle Handle ",inline"
 	Title  string ",omitempty"
 
+	Mirrors      []string          ",omitempty"
 	Dependencies []string          ",omitempty"
 	Formats      map[string]string ",omitempty"
 
