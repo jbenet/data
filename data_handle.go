@@ -2,6 +2,7 @@ package data
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 )
 
@@ -85,4 +86,16 @@ func (d *Handle) GoString() string {
 
 func HandleError(handle string, problem string) error {
 	return fmt.Errorf("Invalid handle (%s): %s", problem, handle)
+}
+
+const identRE = "[a-z0-9_-.]+"
+const namRE = identRE
+const autRE = identRE
+const fmtRE = identRE
+const refRE = identRE
+const hdlRE = "((" + namRE + ")/(" + autRE + "))(\\." + fmtRE + ")?" + "(@" + refRE + ")?"
+
+func IsDatasetHandle(str string) bool {
+	match, err := regexp.MatchString(hdlRE, str)
+	return err != nil && match
 }
