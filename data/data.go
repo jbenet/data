@@ -27,7 +27,7 @@ func main() {
 		}
 	}
 
-	data.DOut("debugging on\n")
+	fmt.Fprintf(os.Stdout, "debugging on\n")
 
 	data.RegisterCommands()
 

@@ -1,8 +1,8 @@
 package data
 
-const VERSION = "0.0.2"
+const Version = "0.0.2"
 
-func VersionCmd([]string) error {
-	Out("data version %s\n", VERSION)
+func versionCmd([]string) error {
+	pOut("data version %s\n", Version)
 	return nil
 }

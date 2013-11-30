@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func GetCmd(args []string) error {
+func getCmd(args []string) error {
 	if len(args) < 1 {
 		return fmt.Errorf("get requires a <dataset> argument.")
 	}
@@ -22,34 +22,34 @@ func GetCmd(args []string) error {
 func GetDataset(dataset string) error {
 	dataset = strings.ToLower(dataset)
 
-	if IsArchiveURL(dataset) {
-		return DownloadDatasetArchive(dataset)
+	if IsArchiveUrl(dataset) {
+		return downloadDatasetArchive(dataset)
 	}
 
 	// add lookup in datadex here.
 	h, err := NewHandle(dataset)
 	if err == nil {
-		return DownloadDatasetArchive(MainDataIndex.ArchiveURL(h))
+		return downloadDatasetArchive(mainDataIndex.ArchiveUrl(h))
 	}
 
 	return fmt.Errorf("Unclear how to handle dataset identifier: %s", dataset)
 }
 
-func DownloadDatasetArchive(archiveURL string) error {
-	base := path.Base(archiveURL)
+func downloadDatasetArchive(archiveUrl string) error {
+	base := path.Base(archiveUrl)
 	arch := path.Join(DatasetDir, ".downloads", base)
 
 	// download the archive
 	// TODO: add local caching of downloads
-	Out("Downloading archive at %s\n", archiveURL)
-	err := DownloadURLToFile(archiveURL, arch)
+	pOut("Downloading archive at %s\n", archiveUrl)
+	err := downloadUrlToFile(archiveUrl, arch)
 	if err != nil {
 		return err
 	}
 
 	// untar the archive
-	DOut("Extracting archive at %s\n", arch)
-	err = ExtractArchive(arch)
+	dOut("Extracting archive at %s\n", arch)
+	err = extractArchive(arch)
 	if err != nil {
 		return err
 	}
@@ -60,7 +60,7 @@ func DownloadDatasetArchive(archiveURL string) error {
 	if err != nil {
 		return err
 	}
-	Out("%s downloaded\n", df.Handle.Dataset)
+	pOut("%s downloaded\n", df.Handle.Dataset)
 
 	// move into place
 	new_path := path.Join(DatasetDir, df.Handle.Path)
@@ -79,24 +79,24 @@ func DownloadDatasetArchive(archiveURL string) error {
 	if err != nil {
 		return err
 	}
-	Out("%s installed\n", df.Handle.Dataset)
+	pOut("%s installed\n", df.Handle.Dataset)
 
 	return nil
 }
 
-// URL utils
+// Url utils
 
 const ArchiveSuffix = ".tar.gz"
 
-func IsArchiveURL(str string) bool {
-	return IsURL(str) && strings.HasSuffix(str, ArchiveSuffix)
+func IsArchiveUrl(str string) bool {
+	return isUrl(str) && strings.HasSuffix(str, ArchiveSuffix)
 }
 
-func IsURL(str string) bool {
+func isUrl(str string) bool {
 	return strings.HasPrefix(str, "http://") || strings.HasPrefix(str, "https://")
 }
 
-func DownloadURL(url string) (*http.Response, error) {
+func downloadUrl(url string) (*http.Response, error) {
 
 	resp, err := http.Get(url)
 	if err != nil {
@@ -110,8 +110,8 @@ func DownloadURL(url string) (*http.Response, error) {
 	return resp, nil
 }
 
-func URLContents(url string) ([]byte, error) {
-	resp, err := DownloadURL(url)
+func urlContents(url string) ([]byte, error) {
+	resp, err := downloadUrl(url)
 	if err != nil {
 		return nil, err
 	}
@@ -126,14 +126,14 @@ func URLContents(url string) ([]byte, error) {
 	return contents, nil
 }
 
-func DownloadURLToFile(url string, filename string) error {
-	resp, err := DownloadURL(url)
+func downloadUrlToFile(url string, filename string) error {
+	resp, err := downloadUrl(url)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
 
-	file, err := CreateFile(filename)
+	file, err := createFile(filename)
 	if err != nil {
 		return err
 	}
@@ -143,7 +143,7 @@ func DownloadURLToFile(url string, filename string) error {
 	return err
 }
 
-func CreateFile(filename string) (*os.File, error) {
+func createFile(filename string) (*os.File, error) {
 	err := os.MkdirAll(path.Dir(filename), 0777)
 	if err != nil {
 		return nil, err
@@ -157,7 +157,7 @@ func CreateFile(filename string) (*os.File, error) {
 }
 
 // Extraction
-func ExtractArchive(filename string) error {
+func extractArchive(filename string) error {
 	file, err := os.Open(filename)
 	if err != nil {
 		return err

@@ -16,30 +16,30 @@ func RegisterCommand(name string, desc string, handler CommandFunc) {
 
 func RegisterCommands() {
 	RC := RegisterCommand
-	RC("get", "Download and install dataset.", GetCmd)
-	RC("list", "List installed datasets.", ListCmd)
-	RC("info", "Show dataset information.", InfoCmd)
-	RC("help", "Show usage information.", HelpCmd)
-	RC("version", "Show data version information.", VersionCmd)
+	RC("get", "Download and install dataset.", getCmd)
+	RC("list", "List installed datasets.", listCmd)
+	RC("info", "Show dataset information.", infoCmd)
+	RC("help", "Show usage information.", helpCmd)
+	RC("version", "Show data version information.", versionCmd)
 }
 
 func PrintCommands() {
 	for _, cmd := range commands {
-		Err("    %-10.10s%s\n", cmd.name, cmd.desc)
+		pErr("    %-10.10s%s\n", cmd.name, cmd.desc)
 	}
 }
 
 func DispatchCommand(name string, args []string) {
-	DErr("dispatching command %s\n", name)
+	dErr("dispatching command %s\n", name)
 
 	cmd, ok := commands[name]
 	if ok {
 		err := cmd.handler(args)
 		if err != nil {
-			Err("data %s: %s\n", name, err)
+			pErr("data %s: %s\n", name, err)
 		}
 	} else {
-		Err("data: unknown command \"%s\"\n", name)
-		Err("Run `data help` for usage.\n")
+		pErr("data: unknown command \"%s\"\n", name)
+		pErr("Run `data help` for usage.\n")
 	}
 }

@@ -5,15 +5,15 @@ import (
 	"path"
 )
 
-func ListCmd([]string) error {
-	return ListDatasets(DatasetDir)
+func listCmd([]string) error {
+	return listDatasets(DatasetDir)
 }
 
-func ListDatasets(dir string) error {
+func listDatasets(dir string) error {
 	authors, err := ioutil.ReadDir(dir)
 
 	if err != nil {
-		Err("data: error reading dataset directory \"%s\"\n", dir)
+		pErr("data: error reading dataset directory \"%s\"\n", dir)
 		return err
 	}
 
@@ -40,11 +40,11 @@ func ListDatasets(dir string) error {
 			dataset := path.Join(a.Name(), d.Name())
 			datafile, err := NewDatafile(DatafilePath(dataset))
 			if err != nil {
-				Err("Error: %s\n", err)
+				pErr("Error: %s\n", err)
 				continue
 			}
 
-			Out("    %-20s @%s\n", datafile.Handle.Path, datafile.Handle.Version)
+			pOut("    %-20s @%s\n", datafile.Handle.Path, datafile.Handle.Version)
 		}
 	}
 

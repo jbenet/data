@@ -4,18 +4,18 @@ import (
 	"fmt"
 )
 
-const MainDataIndexURL = "http://datadex.io"
+const mainDataIndexUrl = "http://datadex.io"
 
-var MainDataIndex = &DataIndex{URL: MainDataIndexURL}
+var mainDataIndex = &DataIndex{Url: mainDataIndexUrl}
 
 type DataIndex struct {
-	URL string
+	Url string
 }
 
-func (i *DataIndex) ArchiveURL(h *Handle) string {
+func (i *DataIndex) ArchiveUrl(h *Handle) string {
 	ref := "master"
 	if len(h.Version) > 0 {
 		ref = h.Version
 	}
-	return fmt.Sprintf("%s/%s/archive/%s%s", i.URL, h.Path, ref, ArchiveSuffix)
+	return fmt.Sprintf("%s/%s/archive/%s%s", i.Url, h.Path, ref, ArchiveSuffix)
 }

@@ -4,15 +4,15 @@ import (
 	"os"
 )
 
-func HelpCmd([]string) error {
+func helpCmd([]string) error {
 	Usage()
 	return nil
 }
 
 func Usage() {
-	Err(usageStr1)
+	pErr(usageStr1)
 	PrintCommands()
-	Err("\n")
+	pErr("\n")
 	// Err(usageStr2)
 
 	os.Exit(1)

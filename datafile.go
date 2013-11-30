@@ -30,7 +30,7 @@ import (
 */
 
 // Serializbale into YAML
-type DatafileContents struct {
+type datafileContents struct {
 	Handle Handle ",inline"
 	Title  string ",omitempty"
 
@@ -48,7 +48,7 @@ type DatafileContents struct {
 
 type Datafile struct {
 	path             string "-" // YAML ignore
-	DatafileContents ",inline"
+	datafileContents ",inline"
 }
 
 const DatasetDir = "datasets"

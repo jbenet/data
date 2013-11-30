@@ -34,7 +34,7 @@ func (d *Handle) SetString(s string) error {
 
 	nam_idx := strings.Index(s, "/")
 	if nam_idx < 0 {
-		return HandleError(s, "no author/name separator")
+		return handleError(s, "no author/name separator")
 	}
 
 	ver_idx := strings.LastIndex(s, "@")
@@ -60,20 +60,20 @@ func (d *Handle) SetString(s string) error {
 }
 
 func slice(s string, from int, to int) string {
-	from = MaxInt(from, 0)
-	to = MinInt(to, len(s))
-	return s[MinInt(from, to):to]
+	from = maxInt(from, 0)
+	to = minInt(to, len(s))
+	return s[minInt(from, to):to]
 }
 
 // https://groups.google.com/forum/#!topic/golang-nuts/dbyqx_LGUxM is silly.
-func MinInt(x, y int) (r int) {
+func minInt(x, y int) (r int) {
 	if x < y {
 		return x
 	}
 	return y
 }
 
-func MaxInt(x, y int) (r int) {
+func maxInt(x, y int) (r int) {
 	if x > y {
 		return x
 	}
@@ -84,7 +84,7 @@ func (d *Handle) GoString() string {
 	return d.Dataset
 }
 
-func HandleError(handle string, problem string) error {
+func handleError(handle string, problem string) error {
 	return fmt.Errorf("Invalid handle (%s): %s", problem, handle)
 }
 
