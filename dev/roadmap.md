@@ -42,12 +42,33 @@ Use a `--save` flag to store into a `Datafile`.
 Installed datasets go into the `data/` directory (configurable) of the project.
 Should download compressed files, and use array of mirrors.
 
-## data put
+## data publish
 
-    data put <author>/<dataset>
+    data publish
 
 Upload and register this package to the dataset index (datadex, configurable).
 Registered packages require extra definitions in their `Datafile`.
+
+Things to do:
+
+- ensure there is a version
+- ensure there is a title
+- prompt for a description
+- prompt for a license ?
+- ensure there is >1 mirror
+- verify mirror validity
+- if version change + old versions exist:
+  - ensure mirrors are distinct
+  - ensure version is increment (unless -f)
+- zero-out hash, compute hash, paste hash
+- post datafile to datadex/publish
+
+## data upload
+
+    data upload <storage service>
+
+Upload package archive to the chosen storage service. This ensures the final
+archive URL is listed as a mirror in the Datafile.
 
 ## data format
 
