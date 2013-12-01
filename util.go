@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-var DEBUG bool
+var Debug bool
 
 func pErr(format string, a ...interface{}) {
 	fmt.Fprintf(os.Stderr, format, a...)
@@ -16,13 +16,13 @@ func pOut(format string, a ...interface{}) {
 }
 
 func dErr(format string, a ...interface{}) {
-	if DEBUG {
+	if Debug {
 		pErr(format, a...)
 	}
 }
 
 func dOut(format string, a ...interface{}) {
-	if DEBUG {
+	if Debug {
 		pOut(format, a...)
 	}
 }

@@ -19,7 +19,7 @@ func main() {
 	for opt := range optarg.Parse() {
 		switch opt.Name {
 		case "debug":
-			data.DEBUG = true
+			data.Debug = true
 		case "version":
 			forceCommand = "version"
 		case "help":
@@ -27,7 +27,9 @@ func main() {
 		}
 	}
 
-	fmt.Fprintf(os.Stdout, "debugging on\n")
+	if data.Debug {
+		fmt.Fprintf(os.Stdout, "debugging on\n")
+	}
 
 	data.RegisterCommands()
 
