@@ -52,9 +52,10 @@ type Datafile struct {
 }
 
 const DatasetDir = "datasets"
+const DatasetFile = "Datafile"
 
 func DatafilePath(dataset string) string {
-	return path.Join(DatasetDir, dataset, "Datafile")
+	return path.Join(DatasetDir, dataset, DatasetFile)
 }
 
 func NewDatafile(path string) (*Datafile, error) {
