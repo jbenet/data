@@ -47,7 +47,7 @@ type datafileContents struct {
 }
 
 type Datafile struct {
-	path             string "-" // YAML ignore
+	Path             string "-" // YAML ignore
 	datafileContents ",inline"
 }
 
@@ -59,7 +59,7 @@ func DatafilePath(dataset string) string {
 }
 
 func NewDatafile(path string) (*Datafile, error) {
-	df := &Datafile{path: path}
+	df := &Datafile{Path: path}
 	err := df.ReadFile()
 	if err != nil {
 		return nil, err
@@ -109,11 +109,11 @@ func (d *Datafile) WriteFile() error {
 		return err
 	}
 
-	return ioutil.WriteFile(d.path, buf, 0666)
+	return ioutil.WriteFile(d.Path, buf, 0666)
 }
 
 func (d *Datafile) ReadFile() error {
-	buf, err := ioutil.ReadFile(d.path)
+	buf, err := ioutil.ReadFile(d.Path)
 	if err != nil {
 		return err
 	}
