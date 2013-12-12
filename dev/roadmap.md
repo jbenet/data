@@ -70,6 +70,12 @@ Things to do:
 Upload package archive to the chosen storage service. This ensures the final
 archive URL is listed as a mirror in the Datafile.
 
+Use a datadex-specific s3 bucket:
+
+    data upload
+    data upload datadex
+    # PUTs to http://datadex.archives.s3.amazonaws.com/<author>/<dataset>/<ref>/<dataset>-<ref>.tar.gz
+
 ## data format
 
     data format <author>/<dataset> <desired format>
