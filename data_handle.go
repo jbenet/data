@@ -2,20 +2,17 @@ package data
 
 import (
 	"fmt"
+	"path"
 	"regexp"
 	"strings"
 )
 
 // <author>/<name>[.<format>][@<tag>]
 type Handle struct {
-	Dataset string
-
 	Author  string "-"
 	Name    string "-"
 	Version string "-"
 	Format  string "-"
-
-	Path string "-" // <author>/<name>
 }
 
 func NewHandle(s string) (*Handle, error) {
@@ -27,6 +24,24 @@ func NewHandle(s string) (*Handle, error) {
 	}
 
 	return d, nil
+}
+
+func (d *Handle) Dataset() string {
+	s := d.Path()
+
+	if len(d.Format) > 0 {
+		s = fmt.Sprintf("%s.%s", s, d.Format)
+	}
+
+	if len(d.Version) > 0 {
+		s = fmt.Sprintf("%s@%s", s, d.Version)
+	}
+
+	return s
+}
+
+func (d *Handle) Path() string {
+	return path.Join(d.Author, d.Name)
 }
 
 // order: rsplit @, split /, rsplit .
@@ -48,14 +63,11 @@ func (d *Handle) SetString(s string) error {
 		fmt_idx = ver_idx // no format in handle.
 	}
 
-	d.Dataset = s
-
 	// parts
 	d.Author = slice(s, 0, nam_idx)
 	d.Name = slice(s, nam_idx, fmt_idx)
 	d.Format = slice(s, fmt_idx+1, ver_idx)
 	d.Version = slice(s, ver_idx+1, len(s))
-	d.Path = slice(s, 0, fmt_idx)
 	return nil
 }
 
@@ -81,7 +93,24 @@ func maxInt(x, y int) (r int) {
 }
 
 func (d *Handle) GoString() string {
-	return d.Dataset
+	return d.Dataset()
+}
+
+func (d *Handle) GetYAML() (tag string, value interface{}) {
+	pOut("GetYAML called\n")
+	return "", d.Dataset()
+}
+
+func (d *Handle) SetYAML(tag string, value interface{}) bool {
+	pOut("SetYAML called\n")
+
+	str, ok := value.(string)
+	if !ok {
+		return false
+	}
+
+	err := d.SetString(str)
+	return err == nil
 }
 
 func handleError(handle string, problem string) error {

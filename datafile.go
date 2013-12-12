@@ -31,7 +31,7 @@ import (
 
 // Serializbale into YAML
 type datafileContents struct {
-	Handle Handle ",inline"
+	Handle Handle "dataset"
 	Title  string ",omitempty"
 
 	Mirrors      []string          ",omitempty"
@@ -80,7 +80,7 @@ func (d *Datafile) Unmarshal(buf []byte) error {
 	}
 
 	// need to ensure handle is initialized...
-	d.Handle.SetString(d.Handle.Dataset)
+	d.Handle.SetString(d.Handle.Dataset())
 	return nil
 }
 

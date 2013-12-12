@@ -17,5 +17,5 @@ func (i *DataIndex) ArchiveUrl(h *Handle) string {
 	if len(h.Version) > 0 {
 		ref = h.Version
 	}
-	return fmt.Sprintf("%s/%s/archive/%s%s", i.Url, h.Path, ref, ArchiveSuffix)
+	return fmt.Sprintf("%s/%s/archive/%s%s", i.Url, h.Path(), ref, ArchiveSuffix)
 }
