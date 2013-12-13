@@ -21,6 +21,7 @@ func RegisterCommands() {
 	RC("info", "Show dataset information.", infoCmd)
 	RC("help", "Show usage information.", helpCmd)
 	RC("version", "Show data version information.", versionCmd)
+	RC("upload", "Upload dataset to storage service.", uploadCmd)
 }
 
 func PrintCommands() {
