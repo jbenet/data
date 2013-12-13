@@ -116,15 +116,23 @@ func handleError(handle string, problem string) error {
 	return fmt.Errorf("Invalid handle (%s): %s", problem, handle)
 }
 
-const identRE = "[a-z0-9_-.]+"
+const identRE = "[a-z0-9-_.]+"
 const namRE = identRE
 const autRE = identRE
 const fmtRE = identRE
 const refRE = identRE
-const hdlRE = "((" + namRE + ")/(" + autRE + "))(\\." +
-	fmtRE + ")?" + "(@" + refRE + ")?"
+const hdlRE = "^((" + namRE + ")/(" + autRE + "))(\\." + fmtRE + ")?" + "(@" + refRE + ")?$"
 
 func IsDatasetHandle(str string) bool {
-	match, err := regexp.MatchString(hdlRE, str)
-	return err != nil && match
+	str = strings.ToLower(str)
+	p, err := regexp.Compile(hdlRE)
+	if err != nil {
+		pOut("%s", err)
+		pOut(hdlRE)
+		panic("Dataset handle regex does not compile.")
+	}
+
+	result := p.MatchString(str)
+	dOut("IsDatasetHandle: %s? %s\n", str, result)
+	return result
 }
