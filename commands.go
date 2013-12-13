@@ -22,6 +22,7 @@ func RegisterCommands() {
 	RC("help", "Show usage information.", helpCmd)
 	RC("version", "Show data version information.", versionCmd)
 	RC("upload", "Upload dataset to storage service.", uploadCmd)
+	RC("manifest", "Generate dataset manifest.", manifestCmd)
 }
 
 func PrintCommands() {

@@ -12,7 +12,7 @@ type file struct {
 }
 
 func (f *file) Marshal() ([]byte, error) {
-	dOut("Marshalling %s\n", f.format)
+	dOut("Marshalling %s\n", f.Path)
 	return goyaml.Marshal(f.format)
 }
 
@@ -22,7 +22,7 @@ func (f *file) Unmarshal(buf []byte) error {
 		return err
 	}
 
-	dOut("Unmarshalling %s\n", f.format)
+	dOut("Unmarshalling %s\n", f.Path)
 	return nil
 }
 
