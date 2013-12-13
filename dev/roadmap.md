@@ -42,6 +42,24 @@ Use a `--save` flag to store into a `Datafile`.
 Installed datasets go into the `data/` directory (configurable) of the project.
 Should download compressed files, and use array of mirrors.
 
+
+## data manifest
+
+    data manifest
+
+Generate the data manifest file (`.data-manifest`? `Datamanifest`?), a list of
+
+    <object hash> <object filename>
+
+Hash function? `sha1` for now. Discuss whether to use `sha256`.
+This manifest file is all that is needed to reconstruct the dataset.
+
+(Manifest files can support a poor-man's version control (changesets of
+filename/filehashes). Basically, a much simpler `git-annex`. Potentially use
+git to store Datafile + manifest:
+- making data refs = git refs
+- repository abstraction great for storing all package versions)
+
 ## data upload
 
     data upload <storage service>
