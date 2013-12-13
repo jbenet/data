@@ -65,7 +65,7 @@ func (mf *Manifest) Add(path string) {
 	// check, dont override (could have hash value)
 	_, exists := (*mf.Files)[path]
 	if !exists {
-		(*mf.Files)[path] = "h"
+		(*mf.Files)[path] = noHash
 		pOut("data manifest: added %s\n", path)
 	}
 }
