@@ -71,6 +71,10 @@ func (d *Datafile) Handle() *Handle {
 	return NewHandle(d.Dataset)
 }
 
+func (d *Datafile) Valid() bool {
+	return d.Handle().Valid()
+}
+
 // Serializing in/out
 
 func (d *Datafile) Marshal() ([]byte, error) {
