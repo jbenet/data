@@ -8,22 +8,33 @@ import (
 )
 
 // <author>/<name>[.<format>][@<tag>]
+
 type Handle struct {
-	Author  string "-"
-	Name    string "-"
-	Version string "-"
-	Format  string "-"
+	Author  string
+	Name    string
+	Format  string
+	Version string
 }
 
-func NewHandle(s string) (*Handle, error) {
+// There are problems with goyaml setters/getters.
+// Unmarshaling fails.
+//
+// func (d Handle) GetYAML() (string, interface{}) {
+// 	pOut("GetYAML\n")
+// 	return "", d.string
+// }
+//
+// func (d Handle) SetYAML(tag string, value interface{}) bool {
+// 	s, ok := value.(string)
+// 	d.string = s
+// 	pOut("SetYAML %s %s\n", d.string, &d)
+// 	return ok
+// }
+
+func NewHandle(s string) *Handle {
 	d := new(Handle)
-
-	err := d.SetString(s)
-	if err != nil {
-		return nil, err
-	}
-
-	return d, nil
+	d.SetDataset(s)
+	return d
 }
 
 func (d *Handle) Dataset() string {
@@ -45,11 +56,11 @@ func (d *Handle) Path() string {
 }
 
 // order: rsplit @, split /, rsplit .
-func (d *Handle) SetString(s string) error {
+func (d *Handle) SetDataset(s string) {
 
 	nam_idx := strings.Index(s, "/")
 	if nam_idx < 0 {
-		return handleError(s, "no author/name separator")
+		nam_idx = 0
 	}
 
 	ver_idx := strings.LastIndex(s, "@")
@@ -68,8 +79,17 @@ func (d *Handle) SetString(s string) error {
 	d.Name = slice(s, nam_idx, fmt_idx)
 	d.Format = slice(s, fmt_idx+1, ver_idx)
 	d.Version = slice(s, ver_idx+1, len(s))
-	return nil
 }
+
+func (d *Handle) GoString() string {
+	return d.Dataset()
+}
+
+func (d *Handle) Valid() bool {
+	return IsDatasetHandle(d.Dataset())
+}
+
+// utils
 
 func slice(s string, from int, to int) string {
 	from = maxInt(from, 0)
@@ -92,27 +112,6 @@ func maxInt(x, y int) (r int) {
 	return y
 }
 
-func (d *Handle) GoString() string {
-	return d.Dataset()
-}
-
-func (d *Handle) GetYAML() (tag string, value interface{}) {
-	pOut("GetYAML called\n")
-	return "", d.Dataset()
-}
-
-func (d *Handle) SetYAML(tag string, value interface{}) bool {
-	pOut("SetYAML called\n")
-
-	str, ok := value.(string)
-	if !ok {
-		return false
-	}
-
-	err := d.SetString(str)
-	return err == nil
-}
-
 func handleError(handle string, problem string) error {
 	return fmt.Errorf("Invalid handle (%s): %s", problem, handle)
 }
@@ -122,7 +121,8 @@ const namRE = identRE
 const autRE = identRE
 const fmtRE = identRE
 const refRE = identRE
-const hdlRE = "((" + namRE + ")/(" + autRE + "))(\\." + fmtRE + ")?" + "(@" + refRE + ")?"
+const hdlRE = "((" + namRE + ")/(" + autRE + "))(\\." +
+	fmtRE + ")?" + "(@" + refRE + ")?"
 
 func IsDatasetHandle(str string) bool {
 	match, err := regexp.MatchString(hdlRE, str)

@@ -27,8 +27,8 @@ func GetDataset(dataset string) error {
 	}
 
 	// add lookup in datadex here.
-	h, err := NewHandle(dataset)
-	if err == nil {
+	h := NewHandle(dataset)
+	if h.Valid() {
 		return downloadDatasetArchive(mainDataIndex.ArchiveUrl(h))
 	}
 
@@ -60,10 +60,10 @@ func downloadDatasetArchive(archiveUrl string) error {
 	if err != nil {
 		return err
 	}
-	pOut("%s downloaded\n", df.Handle.Dataset())
+	pOut("%s downloaded\n", df.Dataset)
 
 	// move into place
-	new_path := path.Join(DatasetDir, df.Handle.Path())
+	new_path := path.Join(DatasetDir, df.Dataset)
 	err = os.MkdirAll(path.Dir(new_path), 0777)
 	if err != nil {
 		return err
@@ -79,7 +79,7 @@ func downloadDatasetArchive(archiveUrl string) error {
 	if err != nil {
 		return err
 	}
-	pOut("%s installed\n", df.Handle.Dataset())
+	pOut("%s installed\n", df.Dataset)
 
 	return nil
 }
