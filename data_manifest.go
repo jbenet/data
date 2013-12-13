@@ -2,11 +2,15 @@ package data
 
 import (
 	"os"
+  "fmt"
+  "bufio"
   "strings"
+  "crypto/sha1"
   "path/filepath"
 )
 
 const DataManifest = ".data-manifest"
+const noHash = "h"
 
 func manifestCmd(args []string) error {
 	return generateManifest()
@@ -25,12 +29,16 @@ func generateManifest() error {
 	// warn about manifest-listed files missing from directory
 	// (basically, missing things. User removes individually, or `rm --missing`)
 
-	// Once all files are listed, hash all the files, and store the hashes.
+	// Once all files are listed, hash all the files, storing the hashes.
+  for f, h := range *mf.Files {
+    if h != noHash {
+      continue
+    }
 
-  // Write it out
-  err := mf.WriteFile()
-  if err != nil {
-    return err
+    err := mf.Hash(f)
+    if err != nil {
+      return err
+    }
   }
 
 	return nil
@@ -61,6 +69,24 @@ func (mf *Manifest) Add(path string) {
     (*mf.Files)[path] = "h"
     pOut("data manifest: added %s\n", path)
   }
+}
+
+func (mf *Manifest) Hash(path string) error {
+  h, err := hashFile(path)
+  if err != nil {
+    return err
+  }
+
+  (*mf.Files)[path] = h
+
+  // Write out file (store incrementally)
+  err = mf.WriteFile()
+  if err != nil {
+    return err
+  }
+
+  pOut("data manifest: hashed %s\n", path)
+  return nil
 }
 
 func listAllFiles(path string) []string {
@@ -98,4 +124,23 @@ func listAllFiles(path string) []string {
 
   filepath.Walk(path, walkFn)
   return files
+}
+
+func hashFile(path string) (string, error) {
+
+  f, err := os.Open(path)
+  if err != nil {
+    return "", err
+  }
+  defer f.Close()
+
+  bf := bufio.NewReader(f)
+  h := sha1.New()
+  _, err = bf.WriteTo(h)
+  if err != nil {
+    return "", err
+  }
+
+  hex := fmt.Sprintf("%x", h.Sum(nil))
+  return hex, nil
 }
