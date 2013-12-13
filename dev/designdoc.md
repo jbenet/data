@@ -159,3 +159,26 @@ used when a reference is expected but not provided. The "default ref" is
 `latest`, and it points to the latest published version.
 
 **tags**: tags are user-specified references, e.g. version numbers like `1.0`.
+
+## data manifest
+
+data uses a manifest of `{ <paths> : <hashes> }` in order to:
+
+- account what files are part of a dataset
+- detect data corruption (check hashes match)
+- provide minimal version control (manifest changesets)
+
+data functions somewhat like `git-annex`:
+
+- stores (version-controls) the path and object hash in the "repository"
+- fetches the large blobs from a storage service
+
+The blobs from all the datasets stored in the same object store. (Blobs from
+different datasets are not segregated into separate bundles). This greatly
+reduces storage needs, de-duplicating common blobs across datasets. This is
+particularly useful for versions of the same dataset, as not all files change
+between versions.
+
+This design reduces storage both remotely (the datadex service de-duplicates
+across all indexed datasets) and locally (users' computers keep one blob cache
+for all installed datasets).

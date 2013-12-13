@@ -31,6 +31,8 @@ Commands:
     info      Show dataset information.
     help      Show usage information.
     version   Show data version information.
+    upload    Upload dataset to storage service.
+    manifest  Generate dataset manifest.
 ```
 
 ### data get
@@ -65,6 +67,29 @@ dataset: foo/bar@1.1
 # shows the Datafile
 > cat datasets/foo/bar/Datafile
 dataset: foo/bar@1.1
+```
+
+### data upload
+
+```
+> data upload
+Uploading objects to datadex storage service...(12/123) 54%
+```
+
+### data manifest
+
+```
+> data manifest add filename
+data manifest: added filename
+
+> data manifest hash filename
+data manifest: hashed 61a66fd filename
+
+> cat .data-manifest
+filename: 61a66fda64e397a82d9f0c8b7b3f7ba6bca79b12
+
+> data manifest rm filename
+data manifest: removed filename
 ```
 
 ## Datafile

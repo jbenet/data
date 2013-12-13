@@ -84,7 +84,7 @@ func (mf *Manifest) Hash(path string) error {
 		return err
 	}
 
-	pOut("data manifest: hashed %s\n", path)
+	pOut("data manifest: hashed %.7s %s\n", h, path)
 	return nil
 }
 

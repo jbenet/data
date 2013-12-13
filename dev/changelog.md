@@ -1,6 +1,14 @@
 # data changelog
 
 
+## v0.0.3 2013-12-13
+
+Uploading datasets.
+
+- data manifest (list + hash files)
+- data upload (blobs to storage service)
+
+
 ## v0.0.2 2013-11-24
 
 Downloading datasets.
