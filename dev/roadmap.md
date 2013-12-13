@@ -45,7 +45,7 @@ Should download compressed files, and use array of mirrors.
 
 ## data manifest
 
-    data manifest
+    data manifest <subcmd>
 
 Generate the data manifest file (`.data-manifest`? `Datamanifest`?), a list of
 
@@ -59,6 +59,14 @@ filename/filehashes). Basically, a much simpler `git-annex`. Potentially use
 git to store Datafile + manifest:
 - making data refs = git refs
 - repository abstraction great for storing all package versions)
+
+Subcommands:
+
+    data manifest add [<file> | -a, --all]
+    data manifest rm [<file> | -m, --missing | -a, --all]
+    data manifest hash [<file> | -r, --rehash]
+    data manifest check [<file> | -a, --all]
+
 
 ## data upload
 
