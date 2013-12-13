@@ -1,9 +1,6 @@
 package data
 
 import (
-	"io"
-	"io/ioutil"
-	"launchpad.net/goyaml"
 	"path"
 )
 
@@ -47,7 +44,7 @@ type datafileContents struct {
 }
 
 type Datafile struct {
-	Path             string "-" // YAML ignore
+	file             "-"
 	datafileContents ",inline"
 }
 
@@ -59,7 +56,9 @@ func DatafilePath(dataset string) string {
 }
 
 func NewDatafile(path string) (*Datafile, error) {
-	df := &Datafile{Path: path}
+	df := &Datafile{file: file{Path: path}}
+	df.file.format = df
+
 	err := df.ReadFile()
 	if err != nil {
 		return nil, err
@@ -73,56 +72,4 @@ func (d *Datafile) Handle() *Handle {
 
 func (d *Datafile) Valid() bool {
 	return d.Handle().Valid()
-}
-
-// Serializing in/out
-
-func (d *Datafile) Marshal() ([]byte, error) {
-	return goyaml.Marshal(d)
-}
-
-func (d *Datafile) Unmarshal(buf []byte) error {
-	err := goyaml.Unmarshal(buf, d)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (d *Datafile) Write(w io.Writer) error {
-	buf, err := d.Marshal()
-	if err != nil {
-		return err
-	}
-
-	_, err = w.Write(buf)
-	return err
-}
-
-func (d *Datafile) Read(r io.Reader) error {
-	buf, err := ioutil.ReadAll(r)
-	if err != nil {
-		return err
-	}
-
-	return d.Unmarshal(buf)
-}
-
-func (d *Datafile) WriteFile() error {
-	buf, err := d.Marshal()
-	if err != nil {
-		return err
-	}
-
-	return ioutil.WriteFile(d.Path, buf, 0666)
-}
-
-func (d *Datafile) ReadFile() error {
-	buf, err := ioutil.ReadFile(d.Path)
-	if err != nil {
-		return err
-	}
-
-	return d.Unmarshal(buf)
 }

@@ -15,6 +15,7 @@ func infoCmd(args []string) error {
 func datasetInfo(dataset string) error {
 	df, err := NewDatafile(DatafilePath(dataset))
 	if err != nil {
+		dErr("Error: %s\n", err)
 		return fmt.Errorf("Invalid dataset handle: %s", dataset)
 	}
 
