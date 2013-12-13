@@ -42,27 +42,6 @@ Use a `--save` flag to store into a `Datafile`.
 Installed datasets go into the `data/` directory (configurable) of the project.
 Should download compressed files, and use array of mirrors.
 
-## data publish
-
-    data publish
-
-Upload and register this package to the dataset index (datadex, configurable).
-Registered packages require extra definitions in their `Datafile`.
-
-Things to do:
-
-- ensure there is a version
-- ensure there is a title
-- prompt for a description
-- prompt for a license ?
-- ensure there is >1 mirror
-- verify mirror validity
-- if version change + old versions exist:
-  - ensure mirrors are distinct
-  - ensure version is increment (unless -f)
-- zero-out hash, compute hash, paste hash
-- post datafile to datadex/publish
-
 ## data upload
 
     data upload <storage service>
@@ -75,6 +54,28 @@ Use a datadex-specific s3 bucket:
     data upload
     data upload datadex
     # PUTs to http://datadex.archives.s3.amazonaws.com/<author>/<dataset>/<ref>/<dataset>-<ref>.tar.gz
+
+Things to do:
+
+- ensure there is a version
+- ensure there is a title
+- prompt for a description
+- prompt for a license
+
+
+## data publish
+
+    data publish
+
+Upload and register this package to the dataset index (datadex, configurable).
+Registered packages require extra definitions in their `Datafile`.
+
+Things to do:
+
+- ensure uploaded
+- post datafile to datadex/publish
+
+
 
 ## data format
 
