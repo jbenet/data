@@ -4,6 +4,8 @@ import (
 	"io"
 	"io/ioutil"
 	"launchpad.net/goyaml"
+	"os"
+	"path"
 )
 
 type file struct {
@@ -47,6 +49,11 @@ func (f *file) Read(r io.Reader) error {
 
 func (f *file) WriteFile() error {
 	buf, err := f.Marshal()
+	if err != nil {
+		return err
+	}
+
+	err = os.MkdirAll(path.Dir(f.Path), 0777)
 	if err != nil {
 		return err
 	}

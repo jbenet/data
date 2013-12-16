@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-const DataManifest = ".data-manifest"
+const DataManifest = ".data/manifest.yml"
 const noHash = "h"
 
 func manifestCmd(args []string) error {
