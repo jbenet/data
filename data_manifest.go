@@ -13,12 +13,49 @@ const DataManifest = ".data/manifest.yml"
 const noHash = "h"
 
 func manifestCmd(args []string) error {
-	return generateManifest()
+	mf := NewManifest("")
+	return mf.Generate()
 }
 
-func generateManifest() error {
+type Manifest struct {
+	file  "-"
+	Files *map[string]string ""
+}
 
-	mf := NewManifest(DataManifest)
+func NewManifest(path string) *Manifest {
+	if len(path) < 1 {
+		path = DataManifest
+	}
+
+	mf := &Manifest{file: file{Path: path}}
+
+	// initialize map
+	mf.Files = &map[string]string{}
+	mf.file.format = mf.Files
+
+	// attempt to load
+	mf.ReadFile()
+	return mf
+}
+
+func NewGeneratedManifest(path string) (*Manifest, error) {
+	mf := NewManifest(path)
+
+	err := mf.Clear()
+	if err != nil {
+		return nil, err
+	}
+
+	err = mf.Generate()
+	if err != nil {
+		return nil, err
+	}
+
+	return mf, nil
+}
+
+func (mf *Manifest) Generate() error {
+	pOut("Generating manifest...\n")
 
 	// add new files to manifest file
 	// (for now add everything. `data manifest {add,rm}` in future)
@@ -42,23 +79,14 @@ func generateManifest() error {
 	}
 
 	return nil
+
 }
 
-type Manifest struct {
-	file  "-"
-	Files *map[string]string ""
-}
-
-func NewManifest(path string) *Manifest {
-	mf := &Manifest{file: file{Path: path}}
-
-	// initialize map
-	mf.Files = &map[string]string{}
-	mf.file.format = mf.Files
-
-	// attempt to load
-	mf.ReadFile()
-	return mf
+func (mf *Manifest) Clear() error {
+	for f, _ := range *mf.Files {
+		delete(*mf.Files, f)
+	}
+	return mf.WriteFile()
 }
 
 func (mf *Manifest) Add(path string) {

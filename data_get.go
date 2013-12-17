@@ -29,7 +29,12 @@ func GetDataset(dataset string) error {
 	// add lookup in datadex here.
 	h := NewHandle(dataset)
 	if h.Valid() {
-		return downloadDatasetArchive(mainDataIndex.ArchiveUrl(h))
+		dataIndex, err := mainDataIndex()
+		if err != nil {
+			return err
+		}
+
+		return downloadDatasetArchive(dataIndex.ArchiveUrl(h))
 	}
 
 	return fmt.Errorf("Unclear how to handle dataset identifier: %s", dataset)

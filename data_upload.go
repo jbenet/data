@@ -2,13 +2,8 @@ package data
 
 import (
 	"fmt"
-	"github.com/kr/s3"
-	"github.com/kr/s3/s3util"
-	"os"
 	"strings"
 )
-
-const datadexS3Bucket = "datadex.archives"
 
 func uploadCmd(args []string) error {
 	if len(args) < 1 {
@@ -26,41 +21,19 @@ func UploadDataset(service string) error {
 		return err
 	}
 
-	switch strings.ToLower(service) {
-	case "datadex":
-		return uploadDatasetToDatadex()
-	}
-
-	return fmt.Errorf("Unsupported storage service %s", service)
-}
-
-func uploadDatasetToDatadex() error {
-
-	s3config, err := s3config()
+	dataIndex, err := dataIndexNamed(service)
 	if err != nil {
 		return err
 	}
 
-	return uploadDatasetToS3(s3config, datadexS3Bucket)
+	return dataIndex.uploadDataset()
 }
 
-func uploadDatasetToS3(config *s3util.Config, bucket string) error {
-	return fmt.Errorf("uploadDatasetToS3 not implemented")
-}
-
-func s3config() (*s3util.Config, error) {
-	c := &s3util.Config{
-		Service: s3.DefaultService,
-		Keys:    new(s3.Keys),
+func dataIndexNamed(name string) (*DataIndex, error) {
+	switch strings.ToLower(name) {
+	case "datadex":
+		return mainDataIndex()
 	}
 
-	// move keys to config. for now use env key.
-	c.AccessKey = os.Getenv("S3_ACCESS_KEY")
-	c.SecretKey = os.Getenv("S3_SECRET_KEY")
-
-	if len(c.AccessKey) < 1 {
-		return nil, fmt.Errorf("no S3_ACCESS_KEY env variable provided.")
-	}
-
-	return c, nil
+	return nil, fmt.Errorf("Unsupported storage service %s", name)
 }
