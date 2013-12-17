@@ -21,9 +21,9 @@ func main() {
 		case "debug":
 			data.Debug = true
 		case "version":
-			forceCommand = "version"
+			forceCommand = "data version"
 		case "help":
-			forceCommand = "help"
+			forceCommand = "data help"
 		}
 	}
 
@@ -40,9 +40,11 @@ func main() {
 
 	args := optarg.Remainder[:len(optarg.Remainder)/2]
 	if len(args) < 1 {
-		data.Usage()
+		data.Usage("data")
 		return
 	}
 
-	data.DispatchCommand(args[0], args[1:])
+	args = append([]string{"data"}, args...)
+	cmd, args := data.IdentifyCommand(args)
+	data.DispatchCommand(cmd, args)
 }

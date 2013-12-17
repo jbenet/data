@@ -2,16 +2,19 @@ package data
 
 import (
 	"os"
+	"strings"
 )
 
-func helpCmd([]string) error {
-	Usage()
+func helpCmd(args []string) error {
+	args = append([]string{"data"}, args...)
+	group := strings.Join(args, " ")
+	Usage(group)
 	return nil
 }
 
-func Usage() {
+func Usage(group string) {
 	pErr(usageStr1)
-	PrintCommands()
+	PrintCommands(group)
 	pErr("\n")
 	// Err(usageStr2)
 
