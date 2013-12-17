@@ -10,12 +10,12 @@ import (
 
 type kvStore interface {
 	Put(key string, value io.Reader) error
-	Get(key string) (io.Reader, error)
+	Get(key string) (io.ReadCloser, error)
 }
 
 type S3Store struct {
 	bucket string
-	config s3util.Config
+	config *s3util.Config
 }
 
 func NewS3Store(bucket string) (*S3Store, error) {
@@ -50,9 +50,24 @@ func (s *S3Store) setupConfig() error {
 }
 
 func (s *S3Store) Put(key string, value io.Reader) error {
-	return fmt.Errorf("S3Store %s PUT %s %s", s.bucket, key, value)
+	w, err := s3util.Create(key, nil, s.config)
+	if err != nil {
+		return err
+	}
+
+	_, err = io.Copy(w, value)
+	if err != nil {
+		return err
+	}
+
+	err = w.Close()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (s *S3Store) Get(key string) (io.Reader, error) {
-	return nil, fmt.Errorf("S3Store %s GET %s", s.bucket, key)
+func (s *S3Store) Get(key string) (io.ReadCloser, error) {
+	return s3util.Open(key, s.config)
 }
