@@ -2,6 +2,7 @@ package data
 
 import (
 	"fmt"
+	"github.com/jbenet/commander"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -11,9 +12,39 @@ import (
 	"strings"
 )
 
-func getCmd(args []string) error {
+var cmd_data_get = &commander.Command{
+	UsageLine: "get [<dataset>|<url>]",
+	Short:     "Download and install dataset.",
+	Long: `data get - Download and install dataset.
+
+    Downloads the dataset specified, and installs its files into the
+    current dataset working directory.
+
+    The dataset argument can be any of:
+
+    HANDLE: Handle of the form <author>/<name>[.<fmt>][@<ref>].
+            Looks up handle on the specified (default) datadex.
+
+    URL:    Direct url to any dataset on any datadex.
+
+    PATH:   Filesystem path to any locally installed dataset.
+
+
+    Loosely, data-get's process is:
+
+    - Locate dataset Datafile and Manifest. (via provided argument).
+    - Download Datafile and Manifest, to local Repository.
+    - Download Blobs, listed in Manifest to local Repository.
+    - Reconstruct Files, listed in Manifest.
+    - Install Files, into working directory.
+
+  `,
+	Run: getCmd,
+}
+
+func getCmd(c *commander.Command, args []string) error {
 	if len(args) < 1 {
-		return fmt.Errorf("get requires a <dataset> argument.")
+		return fmt.Errorf("%v requires a <dataset> argument.", c.FullName())
 	}
 
 	return GetDataset(args[0])

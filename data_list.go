@@ -1,11 +1,22 @@
 package data
 
 import (
+	"github.com/jbenet/commander"
 	"io/ioutil"
 	"path"
 )
 
-func listCmd([]string) error {
+var cmd_data_list = &commander.Command{
+	UsageLine: "info <dataset>",
+	Short:     "Show dataset information.",
+	Long: `data info - Show dataset information.
+
+    Returns the Datafile corresponding to <dataset> and exits.
+  `,
+	Run: listCmd,
+}
+
+func listCmd(*commander.Command, []string) error {
 	return listDatasets(DatasetDir)
 }
 

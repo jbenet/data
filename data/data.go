@@ -4,47 +4,18 @@ import (
 	"os"
 	"fmt"
 	"github.com/jbenet/data"
-	"github.com/jteeuwen/go-pkg-optarg"
 )
 
+// This package (data/data) builds the `data` commandline tool.
+// Everything is in the proper data library package. This extra
+// package is necessary because packages must yield _either_ a
+// library or executable. `data` needed to be both, hence this.
+
 func main() {
-
-	optarg.UsageInfo = fmt.Sprintf("Options usage: %s [options]:", os.Args[0])
-	optarg.Add("h", "help", "Show usage", false)
-	optarg.Add("d", "debug", "Enter debug mode", false)
-	optarg.Add("", "version", "Show version", false)
-	optarg.Parse()
-
-	forceCommand := ""
-	for opt := range optarg.Parse() {
-		switch opt.Name {
-		case "debug":
-			data.Debug = true
-		case "version":
-			forceCommand = "data version"
-		case "help":
-			forceCommand = "data help"
-		}
-	}
-
-	if data.Debug {
-		fmt.Fprintf(os.Stdout, "debugging on\n")
-	}
-
-	data.RegisterCommands()
-
-	if len(forceCommand) > 0 {
-		data.DispatchCommand(forceCommand, []string{})
-		return
-	}
-
-	args := optarg.Remainder[:len(optarg.Remainder)/2]
-	if len(args) < 1 {
-		data.Usage("data")
-		return
-	}
-
-	args = append([]string{"data"}, args...)
-	cmd, args := data.IdentifyCommand(args)
-	data.DispatchCommand(cmd, args)
+  err := data.Cmd_data.Dispatch(os.Args[1:])
+  if err != nil {
+    fmt.Fprintf(os.Stderr, "%v\n", err)
+    os.Exit(1)
+  }
+  return
 }

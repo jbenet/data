@@ -2,11 +2,23 @@ package data
 
 import (
 	"fmt"
+	"github.com/jbenet/commander"
 )
 
-func infoCmd(args []string) error {
+var cmd_data_info = &commander.Command{
+	UsageLine: "info <dataset>",
+	Short:     "Show dataset information.",
+	Long: `data info - Show dataset information.
+
+    Returns the Datafile corresponding to <dataset> and exits.
+  `,
+	Run: infoCmd,
+}
+
+func infoCmd(c *commander.Command, args []string) error {
 	if len(args) < 1 {
-		return fmt.Errorf("info requires an argument.")
+
+		return fmt.Errorf("%v requires a <dataset> argument.", c.FullName())
 	}
 
 	return datasetInfo(args[0])
