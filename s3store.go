@@ -6,15 +6,12 @@ import (
 	"github.com/kr/s3/s3util"
 	"io"
 	"os"
+	"strings"
 )
-
-type kvStore interface {
-	Put(key string, value io.Reader) error
-	Get(key string) (io.ReadCloser, error)
-}
 
 type S3Store struct {
 	bucket string
+	domain string
 	config *s3util.Config
 }
 
@@ -24,7 +21,10 @@ func NewS3Store(bucket string) (*S3Store, error) {
 		return nil, fmt.Errorf("Invalid (empty) S3 Bucket name.")
 	}
 
-	s := &S3Store{bucket: bucket}
+	s := &S3Store{
+		bucket: bucket,
+		domain: "s3.amazonaws.com",
+	}
 
 	err := s.setupConfig()
 	if err != nil {
@@ -35,8 +35,10 @@ func NewS3Store(bucket string) (*S3Store, error) {
 }
 
 func (s *S3Store) setupConfig() error {
-	s.config.Service = s3.DefaultService
-	s.config.Keys = new(s3.Keys)
+	s.config = &s3util.Config{
+		Service: s3.DefaultService,
+		Keys:    new(s3.Keys),
+	}
 
 	// move keys to config. for now use env key.
 	s.config.AccessKey = os.Getenv("S3_ACCESS_KEY")
@@ -49,8 +51,16 @@ func (s *S3Store) setupConfig() error {
 	return nil
 }
 
+func (s *S3Store) Url(key string) string {
+	if !strings.HasPrefix(key, "/") {
+		key = "/" + key
+	}
+	return fmt.Sprintf("http://%s.%s%s", s.bucket, s.domain, key)
+}
+
 func (s *S3Store) Put(key string, value io.Reader) error {
-	w, err := s3util.Create(key, nil, s.config)
+	url := s.Url(key)
+	w, err := s3util.Create(url, nil, s.config)
 	if err != nil {
 		return err
 	}
@@ -69,5 +79,6 @@ func (s *S3Store) Put(key string, value io.Reader) error {
 }
 
 func (s *S3Store) Get(key string) (io.ReadCloser, error) {
-	return s3util.Open(key, s.config)
+	url := s.Url(key)
+	return s3util.Open(url, s.config)
 }
