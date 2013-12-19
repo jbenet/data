@@ -3,7 +3,6 @@ package data
 import (
 	"fmt"
 	"github.com/jbenet/commander"
-	"strings"
 )
 
 var cmd_data_upload = &commander.Command{
@@ -29,14 +28,30 @@ var cmd_data_upload = &commander.Command{
 }
 
 func uploadCmd(c *commander.Command, args []string) error {
-	if len(args) < 1 {
-		return UploadDataset("datadex")
-	} else {
-		return UploadDataset(args[0])
-	}
+	return UploadDataset(args)
 }
 
-func UploadDataset(service string) error {
+func (i *DataIndex) uploadFileOrBlob(pathOrHash string) error {
+	mf := NewManifest("")
+	h, p, err := mf.Pair(pathOrHash)
+	if err != nil {
+		return err
+	}
+
+	return i.putBlob(h, p)
+}
+
+// func (i *DataIndex) downloadFileOrBlob(pathOrHash string) error {
+// 	mf := NewManifest("")
+// 	h, p, err := mf.Pair(pathOrHash)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	return i.getBlob(h, p)
+// }
+
+func UploadDataset(args []string) error {
 
 	// ensure the dataset has required information
 	err := fillOutDatafileInPath(DatasetFile)
@@ -44,19 +59,81 @@ func UploadDataset(service string) error {
 		return err
 	}
 
-	dataIndex, err := dataIndexNamed(service)
+	dataIndex, err := mainDataIndex()
 	if err != nil {
 		return err
 	}
 
-	return dataIndex.uploadDataset()
-}
-
-func dataIndexNamed(name string) (*DataIndex, error) {
-	switch strings.ToLower(name) {
-	case "datadex":
-		return mainDataIndex()
+	if len(args) < 1 {
+		return dataIndex.uploadDataset()
 	}
 
-	return nil, fmt.Errorf("Unsupported storage service %s", name)
+	for _, arg := range args {
+		err := dataIndex.uploadFileOrBlob(arg)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// func DownloadDataset(args []string) error {
+// 	dataIndex, err := mainDataIndex()
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	if len(args) < 1 {
+// 		return dataIndex.downloadDataset()
+// 	}
+
+// 	for _, arg := range args {
+// 		err := dataIndex.downloadFileOrBlob(arg)
+// 		if err != nil {
+// 			return err
+// 		}
+// 	}
+
+// 	return nil
+// }
+
+func (i *DataIndex) uploadDataset() error {
+	err := i.uploadBlobs()
+	if err != nil {
+		return err
+	}
+
+	// upload manifest + datafile to index
+	return fmt.Errorf("upload manifest + datafile to index not implemented\n")
+	return nil
+}
+
+func (i *DataIndex) uploadBlobs() error {
+	// regenerate manifest
+	mf, err := NewGeneratedManifest("")
+	if err != nil {
+		return err
+	}
+
+	// upload manifest files
+	for f, h := range *mf.Files {
+		err = i.putBlob(h, f)
+		if err != nil {
+			return err
+		}
+	}
+
+	// upload manifest itself
+	mfh, err := hashFile(mf.Path)
+	if err != nil {
+		return err
+	}
+
+	err = i.putBlob(mfh, mf.Path)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
