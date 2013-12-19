@@ -1,13 +1,13 @@
 package data
 
 import (
-  "github.com/jbenet/commander"
+	"github.com/jbenet/commander"
 )
 
 var cmd_data_pack = &commander.Command{
-  UsageLine: "pack [ download | upload ]",
-  Short:     "Dataset packaging, upload, and download.",
-  Long: `data pack - Dataset packaging, upload, and download.
+	UsageLine: "pack [ download | upload ]",
+	Short:     "Dataset packaging, upload, and download.",
+	Long: `data pack - Dataset packaging, upload, and download.
 
     Commands:
 
@@ -49,17 +49,17 @@ var cmd_data_pack = &commander.Command{
     Packages can be published to the dataset index using 'data publish'.
   `,
 
-  Run: packCmd,
-  Subcommands: []*commander.Command{
-    cmd_data_pack_upload,
-    cmd_data_pack_download,
-  },
+	Run: packCmd,
+	Subcommands: []*commander.Command{
+		cmd_data_pack_upload,
+		cmd_data_pack_download,
+	},
 }
 
 var cmd_data_pack_upload = &commander.Command{
-  UsageLine: "upload",
-  Short:     "Upload package contents to remote storage.",
-  Long: `data pack upload - Upload package contents to remote storage.
+	UsageLine: "upload",
+	Short:     "Upload package contents to remote storage.",
+	Long: `data pack upload - Upload package contents to remote storage.
 
     Uploads package's files (blobs) to a remote storage service (datadex).
     Blobs are named by their hash (checksum), so data can deduplicate.
@@ -69,13 +69,13 @@ var cmd_data_pack_upload = &commander.Command{
 
     See 'data pack'.
   `,
-  Run: packUploadCmd,
+	Run: packUploadCmd,
 }
 
 var cmd_data_pack_download = &commander.Command{
-  UsageLine: "download",
-  Short:     "Download package contents from remote storage.",
-  Long: `data pack download - Download package contents from remote storage.
+	UsageLine: "download",
+	Short:     "Download package contents from remote storage.",
+	Long: `data pack download - Download package contents from remote storage.
 
     Downloads package's files (blobs) from remote storage service (datadex).
     Blobs are named by their hash (checksum), so data can deduplicate and
@@ -85,43 +85,41 @@ var cmd_data_pack_download = &commander.Command{
 
     See 'data pack'.
   `,
-  Run: packDownloadCmd,
+	Run: packDownloadCmd,
 }
-
 
 func packCmd(c *commander.Command, args []string) error {
-  _, err := packGenerateFiles()
-  return err
+	_, err := packGenerateFiles()
+	return err
 }
 
-
 func packUploadCmd(c *commander.Command, args []string) error {
-  mf, err := packGenerateFiles()
-  if err != nil {
-    return err
-  }
+	mf, err := packGenerateFiles()
+	if err != nil {
+		return err
+	}
 
-  return putBlobs(mf.AllHashes())
+	return putBlobs(mf.AllHashes())
 }
 
 func packDownloadCmd(c *commander.Command, args []string) error {
-  mf := NewManifest("")
-  return getBlobs(mf.AllHashes())
+	mf := NewManifest("")
+	return getBlobs(mf.AllHashes())
 }
 
 func packGenerateFiles() (*Manifest, error) {
 
-  // ensure the dataset has required information
-  err := fillOutDatafileInPath(DatasetFile)
-  if err != nil {
-    return nil, err
-  }
+	// ensure the dataset has required information
+	err := fillOutDatafileInPath(DatasetFile)
+	if err != nil {
+		return nil, err
+	}
 
-  // regenerate manifest
-  mf, err := NewGeneratedManifest("")
-  if err != nil {
-    return nil, err
-  }
+	// regenerate manifest
+	mf, err := NewGeneratedManifest("")
+	if err != nil {
+		return nil, err
+	}
 
-  return mf, nil
+	return mf, nil
 }
