@@ -149,6 +149,34 @@ func (mf *Manifest) Hash(path string) error {
 	return nil
 }
 
+func (mf *Manifest) StoredPath(hash string) (string, error) {
+	for path, h := range *mf.Files {
+		if h == hash {
+			return path, nil
+		}
+	}
+	return "", fmt.Errorf("Hash %v is not tracked in the manifest.", hash)
+}
+
+func (mf *Manifest) StoredHash(path string) (string, error) {
+	hash, exists := (*mf.Files)[path]
+	if exists {
+		return hash, nil
+	}
+	return "", fmt.Errorf("Path %v is not tracked in the manifest.", path)
+}
+
+func (mf *Manifest) Pair(pathOrHash string) (hash string, path string, err error) {
+	if isHash(pathOrHash) {
+		hash = pathOrHash
+		path, err = mf.StoredPath(hash)
+	} else {
+		path = pathOrHash
+		hash, err = mf.StoredHash(path)
+	}
+	return
+}
+
 func listAllFiles(path string) []string {
 
 	files := []string{}
