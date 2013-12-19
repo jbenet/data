@@ -7,11 +7,12 @@ import (
 )
 
 var cmd_data_list = &commander.Command{
-	UsageLine: "info <dataset>",
-	Short:     "Show dataset information.",
-	Long: `data info - Show dataset information.
+	UsageLine: "list <dataset>",
+	Short:     "List installed datasets.",
+	Long: `data list - List insalled datasets.
 
-    Returns the Datafile corresponding to <dataset> and exits.
+		Returns all the datasets installed in the dataset working directory,
+		end exits.
   `,
 	Run: listCmd,
 }
