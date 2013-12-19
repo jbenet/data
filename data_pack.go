@@ -1,6 +1,7 @@
 package data
 
 import (
+	"fmt"
 	"github.com/jbenet/commander"
 )
 
@@ -14,6 +15,7 @@ var cmd_data_pack = &commander.Command{
       pack            Create or update package description.
       pack upload     Upload package contents to remote storage.
       pack download   Download package contents from remote storage.
+      pack checksum   Verify all file checksums match.
 
 
     What is a data package?
@@ -46,6 +48,11 @@ var cmd_data_pack = &commander.Command{
     from the Datafile and Manifest. Running 'data pack download' ensures
     all files listed in the Manifest are downloaded to the directory.
 
+    data pack checksum
+
+    Packages can be verified entirely by calling the 'data pack checksum'
+    command. It re-hashes every file and ensures the checksums match.
+
     Packages can be published to the dataset index using 'data publish'.
   `,
 
@@ -53,6 +60,7 @@ var cmd_data_pack = &commander.Command{
 	Subcommands: []*commander.Command{
 		cmd_data_pack_upload,
 		cmd_data_pack_download,
+		cmd_data_pack_check,
 	},
 }
 
@@ -88,6 +96,21 @@ var cmd_data_pack_download = &commander.Command{
 	Run: packDownloadCmd,
 }
 
+var cmd_data_pack_check = &commander.Command{
+	UsageLine: "check",
+	Short:     "Verify all file checksums match.",
+	Long: `data pack check - Verify all file checksums match.
+
+    Verifies all package's file (blob) checksums match hashes stored in
+    the Manifest. This is the way to check package-wide integrity. If any
+    checksums FAIL, it is suggested that the files be re-downloaded (using
+    'data pack download' or 'data blob get <hash>').
+
+    See 'data pack'.
+  `,
+	Run: packCheckCmd,
+}
+
 func packCmd(c *commander.Command, args []string) error {
 	_, err := packGenerateFiles()
 	return err
@@ -105,6 +128,24 @@ func packUploadCmd(c *commander.Command, args []string) error {
 func packDownloadCmd(c *commander.Command, args []string) error {
 	mf := NewManifest("")
 	return getBlobs(mf.AllHashes())
+}
+
+func packCheckCmd(c *commander.Command, args []string) error {
+	count := 0
+
+	mf := NewManifest("")
+	for _, file := range mf.AllPaths() {
+		err := mf.Check(file)
+		if err != nil {
+			count++
+		}
+	}
+
+	if count > 0 {
+		return fmt.Errorf("data pack: %v checksums failed!", count)
+	}
+
+	return nil
 }
 
 func packGenerateFiles() (*Manifest, error) {

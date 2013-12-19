@@ -14,7 +14,7 @@ const DataManifest = "Manifest"
 const noHash = "h"
 
 var cmd_data_manifest = &commander.Command{
-	UsageLine: "manifest [ add | remove | hash <path>]",
+	UsageLine: "manifest [[ add | remove | hash | check ] <path>]",
 	Short:     "Generate dataset manifest.",
 	Long: `data manifest - Generate dataset manifest.
 
@@ -33,6 +33,7 @@ var cmd_data_manifest = &commander.Command{
       add <file>      Adds <file> to manifest (does not hash).
       rm <file>       Removes <file> from manifest.
       hash <file>     Hashes <file> and adds checksum to manifest.
+      check <file>    Verifies <file> checksum matches manifest.
 
 
     Loosely, data-manifest's process is:
@@ -146,6 +147,27 @@ func (mf *Manifest) Hash(path string) error {
 	}
 
 	pOut("data manifest: hashed %.7s %s\n", h, path)
+	return nil
+}
+
+func (mf *Manifest) Check(path string) error {
+	oldHash, found := (*mf.Files)[path]
+	if !found {
+		return fmt.Errorf("data manifest: file not in manifest %s", path)
+	}
+
+	newHash, err := hashFile(path)
+	if err != nil {
+		return err
+	}
+
+	mfmt := "data manifest: checksum %.7s %s %s"
+	if newHash != oldHash {
+		pOut(mfmt, oldHash, path, "FAIL\n")
+		return fmt.Errorf(mfmt, oldHash, path, "FAIL")
+	}
+
+	dOut(mfmt, oldHash, path, "PASS\n")
 	return nil
 }
 
