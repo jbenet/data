@@ -31,26 +31,6 @@ func uploadCmd(c *commander.Command, args []string) error {
 	return UploadDataset(args)
 }
 
-func (i *DataIndex) uploadFileOrBlob(pathOrHash string) error {
-	mf := NewManifest("")
-	h, p, err := mf.Pair(pathOrHash)
-	if err != nil {
-		return err
-	}
-
-	return i.putBlob(h, p)
-}
-
-// func (i *DataIndex) downloadFileOrBlob(pathOrHash string) error {
-// 	mf := NewManifest("")
-// 	h, p, err := mf.Pair(pathOrHash)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	return i.getBlob(h, p)
-// }
-
 func UploadDataset(args []string) error {
 
 	// ensure the dataset has required information
@@ -64,18 +44,7 @@ func UploadDataset(args []string) error {
 		return err
 	}
 
-	if len(args) < 1 {
-		return dataIndex.uploadDataset()
-	}
-
-	for _, arg := range args {
-		err := dataIndex.uploadFileOrBlob(arg)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return dataIndex.uploadDataset()
 }
 
 // func DownloadDataset(args []string) error {

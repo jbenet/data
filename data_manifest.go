@@ -149,16 +149,22 @@ func (mf *Manifest) Hash(path string) error {
 	return nil
 }
 
-func (mf *Manifest) StoredPath(hash string) (string, error) {
+func (mf *Manifest) PathsForHash(hash string) ([]string, error) {
+	l := []string{}
 	for path, h := range *mf.Files {
 		if h == hash {
-			return path, nil
+			l = append(l, path)
 		}
 	}
-	return "", fmt.Errorf("Hash %v is not tracked in the manifest.", hash)
+
+	if len(l) > 0 {
+		return l, nil
+	}
+
+	return l, fmt.Errorf("Hash %v is not tracked in the manifest.", hash)
 }
 
-func (mf *Manifest) StoredHash(path string) (string, error) {
+func (mf *Manifest) HashForPath(path string) (string, error) {
 	hash, exists := (*mf.Files)[path]
 	if exists {
 		return hash, nil
@@ -166,15 +172,20 @@ func (mf *Manifest) StoredHash(path string) (string, error) {
 	return "", fmt.Errorf("Path %v is not tracked in the manifest.", path)
 }
 
-func (mf *Manifest) Pair(pathOrHash string) (hash string, path string, err error) {
-	if isHash(pathOrHash) {
-		hash = pathOrHash
-		path, err = mf.StoredPath(hash)
-	} else {
-		path = pathOrHash
-		hash, err = mf.StoredHash(path)
+func (mf *Manifest) AllPaths() []string {
+	l := []string{}
+	for p, _ := range *mf.Files {
+		l = append(l, p)
 	}
-	return
+	return l
+}
+
+func (mf *Manifest) AllHashes() []string {
+	l := []string{}
+	for _, h := range *mf.Files {
+		l = append(l, h)
+	}
+	return l
 }
 
 func listAllFiles(path string) []string {

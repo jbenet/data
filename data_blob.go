@@ -3,6 +3,7 @@ package data
 import (
 	"bufio"
 	"fmt"
+	"github.com/gonuts/flag"
 	"github.com/jbenet/commander"
 	"io"
 	"os"
@@ -58,6 +59,8 @@ var cmd_data_blob = &commander.Command{
     Use it directly if you know what you're doing.)
   `,
 
+	Flag: *flag.NewFlagSet("data-blob", flag.ExitOnError),
+
 	Subcommands: []*commander.Command{
 		cmd_data_blob_put,
 		cmd_data_blob_get,
@@ -101,7 +104,14 @@ Arguments:
     <hash>   name (cryptographic hash, checksum) of the blob.
 
   `,
-	Run: blobGetCmd,
+	Run:  blobGetCmd,
+	Flag: *flag.NewFlagSet("data-blob-get", flag.ExitOnError),
+}
+
+func init() {
+	cmd_data_blob.Flag.Bool("all", false, "all available blobs")
+	cmd_data_blob_get.Flag.Bool("all", false, "get all available blobs")
+	cmd_data_blob_put.Flag.Bool("all", false, "put all available blobs")
 }
 
 type blobStore interface {
@@ -110,24 +120,53 @@ type blobStore interface {
 }
 
 func blobPutCmd(c *commander.Command, args []string) error {
-	hash, path, err := blobCmdHashPath(c, args)
-	if err != nil {
-		return err
+
+	f := func(d *DataIndex, hash string, paths []string) error {
+		pOut("put blob %.7s %s\n", hash, paths[0])
+		return d.putBlob(hash, paths[0])
 	}
 
-	dataIndex, err := mainDataIndex()
-	if err != nil {
-		return err
-	}
-
-	pOut("put blob %s %s\n", hash, path)
-	return dataIndex.putBlob(hash, path)
+	hashes := blobCmdHashes(c, args)
+	return blobCmdRunFunc(hashes, f)
 }
 
 func blobGetCmd(c *commander.Command, args []string) error {
-	hash, path, err := blobCmdHashPath(c, args)
-	if err != nil {
-		return err
+
+	f := func(d *DataIndex, hash string, paths []string) error {
+		pOut("get blob %.7s %s\n", hash, paths[0])
+
+		// download one blob
+		err := d.getBlob(hash, paths[0])
+		if err != nil {
+			return err
+		}
+
+		// copy what we got to others
+		for _, path := range paths[1:] {
+			pOut("get blob %.7s %s\n", hash, path)
+			err := copyFile(paths[0], path)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}
+
+	hashes := blobCmdHashes(c, args)
+	return blobCmdRunFunc(hashes, f)
+}
+
+// Run a blob get/put function on all hashes provided.
+// Do error checking along the way. This function is here to
+// ensure the logic remains the same across functions (duplicated
+// code can diverge).
+type blobCmdFunc func(*DataIndex, string, []string) error
+
+func blobCmdRunFunc(hashes []string, f blobCmdFunc) error {
+
+	if len(hashes) < 1 {
+		return fmt.Errorf("at least one <hash> argument required.")
 	}
 
 	dataIndex, err := mainDataIndex()
@@ -135,29 +174,45 @@ func blobGetCmd(c *commander.Command, args []string) error {
 		return err
 	}
 
-	pOut("get blob %s %s\n", hash, path)
-	return dataIndex.getBlob(hash, path)
+	done := map[string]bool{}
+
+	for _, hash := range hashes {
+
+		if _, found := done[hash]; found {
+			continue
+		}
+
+		if !isHash(hash) {
+			return fmt.Errorf("invalid <hash>: %v", hash)
+		}
+
+		paths, err := blobPaths(hash)
+		if err != nil {
+			return err
+		}
+
+		err = f(dataIndex, hash, paths)
+		if err != nil {
+			return err
+		}
+
+		done[hash] = true
+	}
+
+	return nil
 }
 
-func blobCmdHashPath(c *commander.Command, args []string) (string, string, error) {
-
-	if len(args) < 1 {
-		return "", "", fmt.Errorf("%v: <hash> argument required.", c.FullName())
+// Appends any hashes in the manifest if --all is passed in.
+func blobCmdHashes(c *commander.Command, args []string) []string {
+	all := c.Flag.Lookup("all").Value.Get().(bool)
+	if all {
+		mf := NewManifest("")
+		args = append(args, mf.AllHashes()...)
 	}
-
-	hash := args[0]
-	if !isHash(hash) {
-		return "", "", fmt.Errorf("%v: <hash> is not valid: %v", c.FullName(), hash)
-	}
-
-	path, err := blobPath(hash)
-	if err != nil {
-		return "", "", err
-	}
-
-	return hash, path, nil
+	return args
 }
 
+// DataIndex extension to handle putting blob
 func (i *DataIndex) putBlob(hash string, path string) error {
 	f, err := os.Open(path)
 	if err != nil {
@@ -179,6 +234,7 @@ func (i *DataIndex) putBlob(hash string, path string) error {
 	return nil
 }
 
+// DataIndex extension to handle getting blob
 func (i *DataIndex) getBlob(hash string, path string) error {
 	r, err := i.BlobStore.Get(blobKey(hash))
 	if err != nil {
@@ -211,9 +267,9 @@ func (i *DataIndex) getBlob(hash string, path string) error {
 	return nil
 }
 
-func blobPath(hash string) (string, error) {
+func blobPaths(hash string) ([]string, error) {
 	mf := NewManifest("")
-	return mf.StoredPath(hash)
+	return mf.PathsForHash(hash)
 }
 
 func blobKey(hash string) string {

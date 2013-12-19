@@ -3,6 +3,7 @@ package data
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"unicode"
 )
 
@@ -42,4 +43,13 @@ func isHash(hash string) bool {
 	}
 
 	return true
+}
+
+func shortHash(hash string) string {
+	return hash[:7]
+}
+
+func copyFile(src string, dst string) error {
+	cmd := exec.Command("cp", src, dst)
+	return cmd.Run()
 }
