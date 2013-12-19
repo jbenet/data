@@ -3,10 +3,12 @@ package data
 import (
 	"fmt"
 	"os"
+	"unicode"
 )
 
 var Debug bool
 
+// Shorthand printing functions.
 func pErr(format string, a ...interface{}) {
 	fmt.Fprintf(os.Stderr, format, a...)
 }
@@ -25,4 +27,19 @@ func dOut(format string, a ...interface{}) {
 	if Debug {
 		pOut(format, a...)
 	}
+}
+
+// Checks whether string is a hash (sha1)
+func isHash(hash string) bool {
+	if len(hash) != 40 {
+		return false
+	}
+
+	for _, r := range hash {
+		if !unicode.Is(unicode.ASCII_Hex_Digit, r) {
+			return false
+		}
+	}
+
+	return true
 }
