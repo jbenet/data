@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-const DataManifest = ".data/manifest.yml"
+const DataManifest = "Manifest"
 const noHash = "h"
 
 var cmd_data_manifest = &commander.Command{
