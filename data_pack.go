@@ -1,0 +1,127 @@
+package data
+
+import (
+  "github.com/jbenet/commander"
+)
+
+var cmd_data_pack = &commander.Command{
+  UsageLine: "pack [ download | upload ]",
+  Short:     "Dataset packaging, upload, and download.",
+  Long: `data pack - Dataset packaging, upload, and download.
+
+    Commands:
+
+      pack            Create or update package description.
+      pack upload     Upload package contents to remote storage.
+      pack download   Download package contents from remote storage.
+
+
+    What is a data package?
+
+    A data package represents a single dataset, a unit of information.
+    data makes it easy to find, download, create, publish, and maintain
+    these datasets/packages.
+
+    Dataset packages are simply file directories with two extra files:
+    - Datafile, containing dataset description and metadata
+    - Manifest, containing dataset file paths and checksums
+    (See 'data help datafile' and 'data help manifest'.)
+
+    data pack
+
+    'Packing' is the process of generating the package's Datafile and
+    Manifest. The Manifest is built automatically, but the Datafile
+    requires user input, to specify name, author, description, etc.
+
+    data pack upload
+
+    Packages, once 'packed' (Datafile + Manifest created), can be uploaded
+    to a remote storage service (by default, the datadex). This means
+    uploading all the package's files (blobs) not already present in the
+    storage service. This is determined using a checksum.
+
+    data pack download
+
+    Similarly, packages can be downloaded or reconstructed in any directory
+    from the Datafile and Manifest. Running 'data pack download' ensures
+    all files listed in the Manifest are downloaded to the directory.
+
+    Packages can be published to the dataset index using 'data publish'.
+  `,
+
+  Run: packCmd,
+  Subcommands: []*commander.Command{
+    cmd_data_pack_upload,
+    cmd_data_pack_download,
+  },
+}
+
+var cmd_data_pack_upload = &commander.Command{
+  UsageLine: "upload",
+  Short:     "Upload package contents to remote storage.",
+  Long: `data pack upload - Upload package contents to remote storage.
+
+    Uploads package's files (blobs) to a remote storage service (datadex).
+    Blobs are named by their hash (checksum), so data can deduplicate.
+    Meaning, data can easily tell whether the service already has each
+    file, avoiding redundant uploads, saving bandwidth, and leveraging
+    the data uploaded along with other datasets.
+
+    See 'data pack'.
+  `,
+  Run: packUploadCmd,
+}
+
+var cmd_data_pack_download = &commander.Command{
+  UsageLine: "download",
+  Short:     "Download package contents from remote storage.",
+  Long: `data pack download - Download package contents from remote storage.
+
+    Downloads package's files (blobs) from remote storage service (datadex).
+    Blobs are named by their hash (checksum), so data can deduplicate and
+    ensure integrity. Meaning, data can avoid redundant downloads, saving
+    bandwidth and speed, as well as verify the correctness of files with
+    their checksum, preventing corruption.
+
+    See 'data pack'.
+  `,
+  Run: packDownloadCmd,
+}
+
+
+func packCmd(c *commander.Command, args []string) error {
+  _, err := packGenerateFiles()
+  return err
+}
+
+
+func packUploadCmd(c *commander.Command, args []string) error {
+  mf, err := packGenerateFiles()
+  if err != nil {
+    return err
+  }
+
+  return putBlobs(mf.AllHashes())
+}
+
+func packDownloadCmd(c *commander.Command, args []string) error {
+  mf := NewManifest("")
+  return getBlobs(mf.AllHashes())
+}
+
+func packGenerateFiles() (*Manifest, error) {
+
+  // ensure the dataset has required information
+  err := fillOutDatafileInPath(DatasetFile)
+  if err != nil {
+    return nil, err
+  }
+
+  // regenerate manifest
+  mf, err := NewGeneratedManifest("")
+  if err != nil {
+    return nil, err
+  }
+
+  return mf, nil
+}
