@@ -53,3 +53,31 @@ func copyFile(src string, dst string) error {
 	cmd := exec.Command("cp", src, dst)
 	return cmd.Run()
 }
+
+func set(slice []string) []string {
+	dedup := []string{}
+	elems := map[string]bool{}
+	for _, elem := range slice {
+		_, seen := elems[elem]
+		if !seen {
+			dedup = append(dedup, elem)
+			elems[elem] = true
+		}
+	}
+	return dedup
+}
+
+func validHashes(hashes []string) (valid []string, err error) {
+	hashes = set(hashes)
+
+	// append only valid hashes
+	for _, hash := range hashes {
+		if isHash(hash) {
+			valid = append(valid, hash)
+		} else {
+			err = fmt.Errorf("invalid <hash>: %v", hash)
+		}
+	}
+
+	return
+}

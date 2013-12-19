@@ -67,8 +67,19 @@ Subcommands:
     data manifest hash [<file> | -r, --rehash]
     data manifest check [<file> | -a, --all]
 
+## data blob
 
-## data upload
+    data blob <subcmd> <blob>
+
+Manipulate blobs in the (remote) blobstore.
+
+Subcommands:
+
+    data blob get [<blob> | --all]      # download blob from blobstore
+    data blob put [<blob> | --all]      # upload blob to blobstore
+
+
+## data pack
 
     data upload <storage service>
 

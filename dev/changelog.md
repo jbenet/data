@@ -6,7 +6,7 @@
 Uploading datasets.
 
 - data manifest (list + hash files)
-- data upload (blobs to storage service)
+- data blob (blobs to storage service)
 
 
 ## v0.0.2 2013-11-24

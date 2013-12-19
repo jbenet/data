@@ -119,24 +119,94 @@ type blobStore interface {
 	Get(key string) (io.ReadCloser, error)
 }
 
-func blobPutCmd(c *commander.Command, args []string) error {
+// Handles arguments and dispatches subcommand.
+func blobCmd(c *commander.Command, args []string) ([]string, error) {
 
-	f := func(d *DataIndex, hash string, paths []string) error {
-		pOut("put blob %.7s %s\n", hash, paths[0])
-		return d.putBlob(hash, paths[0])
+	hashes := args
+
+	// Use all hashes in the manifest if --all is passed in.
+	all := c.Flag.Lookup("all").Value.Get().(bool)
+	if all {
+		mf := NewManifest("")
+		hashes = mf.AllHashes()
 	}
 
-	hashes := blobCmdHashes(c, args)
-	return blobCmdRunFunc(hashes, f)
+	if len(hashes) < 1 {
+		return nil, fmt.Errorf("%v: requires <hash> argument (or --all)", c.FullName())
+	}
+
+	return hashes, nil
 }
 
 func blobGetCmd(c *commander.Command, args []string) error {
+	hashes, err := blobCmd(c, args)
+	if err != nil {
+		return err
+	}
+	return getBlobs(hashes)
+}
 
-	f := func(d *DataIndex, hash string, paths []string) error {
-		pOut("get blob %.7s %s\n", hash, paths[0])
+func blobPutCmd(c *commander.Command, args []string) error {
+	hashes, err := blobCmd(c, args)
+	if err != nil {
+		return err
+	}
+	return putBlobs(hashes)
+}
+
+// Uploads all blobs named by `hashes` from blobstore
+func putBlobs(hashes []string) error {
+
+	hashes, err := validHashes(hashes)
+	if err != nil {
+		return err
+	}
+
+	dataIndex, err := mainDataIndex()
+	if err != nil {
+		return err
+	}
+
+	for _, hash := range hashes {
+
+		paths, err := blobPaths(hash)
+		if err != nil {
+			return err
+		}
+
+		pOut("put blob %.7s %s\n", hash, paths[0])
+		err = dataIndex.putBlob(hash, paths[0])
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Downloads all blobs named by `hashes` from blobstore
+func getBlobs(hashes []string) error {
+
+	hashes, err := validHashes(hashes)
+	if err != nil {
+		return err
+	}
+
+	dataIndex, err := mainDataIndex()
+	if err != nil {
+		return err
+	}
+
+	for _, hash := range hashes {
+
+		paths, err := blobPaths(hash)
+		if err != nil {
+			return err
+		}
 
 		// download one blob
-		err := d.getBlob(hash, paths[0])
+		pOut("get blob %.7s %s\n", hash, paths[0])
+		err = dataIndex.getBlob(hash, paths[0])
 		if err != nil {
 			return err
 		}
@@ -149,67 +219,9 @@ func blobGetCmd(c *commander.Command, args []string) error {
 				return err
 			}
 		}
-
-		return nil
-	}
-
-	hashes := blobCmdHashes(c, args)
-	return blobCmdRunFunc(hashes, f)
-}
-
-// Run a blob get/put function on all hashes provided.
-// Do error checking along the way. This function is here to
-// ensure the logic remains the same across functions (duplicated
-// code can diverge).
-type blobCmdFunc func(*DataIndex, string, []string) error
-
-func blobCmdRunFunc(hashes []string, f blobCmdFunc) error {
-
-	if len(hashes) < 1 {
-		return fmt.Errorf("at least one <hash> argument required.")
-	}
-
-	dataIndex, err := mainDataIndex()
-	if err != nil {
-		return err
-	}
-
-	done := map[string]bool{}
-
-	for _, hash := range hashes {
-
-		if _, found := done[hash]; found {
-			continue
-		}
-
-		if !isHash(hash) {
-			return fmt.Errorf("invalid <hash>: %v", hash)
-		}
-
-		paths, err := blobPaths(hash)
-		if err != nil {
-			return err
-		}
-
-		err = f(dataIndex, hash, paths)
-		if err != nil {
-			return err
-		}
-
-		done[hash] = true
 	}
 
 	return nil
-}
-
-// Appends any hashes in the manifest if --all is passed in.
-func blobCmdHashes(c *commander.Command, args []string) []string {
-	all := c.Flag.Lookup("all").Value.Get().(bool)
-	if all {
-		mf := NewManifest("")
-		args = append(args, mf.AllHashes()...)
-	}
-	return args
 }
 
 // DataIndex extension to handle putting blob
@@ -267,11 +279,13 @@ func (i *DataIndex) getBlob(hash string, path string) error {
 	return nil
 }
 
+// Returns all paths associated with blob
 func blobPaths(hash string) ([]string, error) {
 	mf := NewManifest("")
 	return mf.PathsForHash(hash)
 }
 
+// Returns the blobstore key for blob
 func blobKey(hash string) string {
 	return fmt.Sprintf("/blob/%s", hash)
 }
