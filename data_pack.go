@@ -159,6 +159,7 @@ func packCheckCmd(c *commander.Command, args []string) error {
 		return fmt.Errorf("data pack: %v checksums failed!", count)
 	}
 
+	pOut("data pack: %v checksums pass\n", len(*mf.Files))
 	return nil
 }
 
