@@ -12,9 +12,9 @@ var cmd_data_pack = &commander.Command{
 
     Commands:
 
-      pack            Create or update package description.
-      pack upload     Upload package contents to remote storage.
-      pack download   Download package contents from remote storage.
+      pack make       Create or update package description.
+      pack upload     Upload package to remote storage.
+      pack download   Download package from remote storage.
       pack checksum   Verify all file checksums match.
 
 
@@ -29,7 +29,7 @@ var cmd_data_pack = &commander.Command{
     - Manifest, containing dataset file paths and checksums
     (See 'data help datafile' and 'data help manifest'.)
 
-    data pack
+    data pack make
 
     'Packing' is the process of generating the package's Datafile and
     Manifest. The Manifest is built automatically, but the Datafile
@@ -56,12 +56,26 @@ var cmd_data_pack = &commander.Command{
     Packages can be published to the dataset index using 'data publish'.
   `,
 
-	Run: packCmd,
 	Subcommands: []*commander.Command{
+		cmd_data_pack_make,
 		cmd_data_pack_upload,
 		cmd_data_pack_download,
 		cmd_data_pack_check,
 	},
+}
+
+var cmd_data_pack_make = &commander.Command{
+	UsageLine: "make",
+	Short:     "Create or update package description.",
+	Long: `data pack upload - Upload package contents to remote storage.
+
+    Makes the package's description files:
+    - Datafile, containing dataset description and metadata (prompts)
+    - Manifest, containing dataset file paths and checksums (generated)
+
+    See 'data pack'.
+  `,
+	Run: packMakeCmd,
 }
 
 var cmd_data_pack_upload = &commander.Command{
@@ -111,7 +125,7 @@ var cmd_data_pack_check = &commander.Command{
 	Run: packCheckCmd,
 }
 
-func packCmd(c *commander.Command, args []string) error {
+func packMakeCmd(c *commander.Command, args []string) error {
 	_, err := packGenerateFiles()
 	return err
 }
