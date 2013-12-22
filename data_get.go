@@ -60,7 +60,7 @@ func GetDataset(dataset string) error {
 	// add lookup in datadex here.
 	h := NewHandle(dataset)
 	if h.Valid() {
-		dataIndex, err := mainDataIndex()
+		dataIndex, err := NewMainDataIndex()
 		if err != nil {
 			return err
 		}

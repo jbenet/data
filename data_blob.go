@@ -162,7 +162,7 @@ func putBlobs(hashes []string) error {
 		return err
 	}
 
-	dataIndex, err := mainDataIndex()
+	dataIndex, err := NewMainDataIndex()
 	if err != nil {
 		return err
 	}
@@ -192,7 +192,7 @@ func getBlobs(hashes []string) error {
 		return err
 	}
 
-	dataIndex, err := mainDataIndex()
+	dataIndex, err := NewMainDataIndex()
 	if err != nil {
 		return err
 	}
