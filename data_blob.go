@@ -233,7 +233,7 @@ func (i *DataIndex) putBlob(hash string, path string) error {
 	defer f.Close()
 
 	bf := bufio.NewReader(f)
-	err = i.BlobStore.Put(blobKey(hash), bf)
+	err = i.BlobStore.Put(BlobKey(hash), bf)
 	if err != nil {
 		return err
 	}
@@ -248,7 +248,7 @@ func (i *DataIndex) putBlob(hash string, path string) error {
 
 // DataIndex extension to handle getting blob
 func (i *DataIndex) getBlob(hash string, path string) error {
-	r, err := i.BlobStore.Get(blobKey(hash))
+	r, err := i.BlobStore.Get(BlobKey(hash))
 	if err != nil {
 		return err
 	}
@@ -286,6 +286,6 @@ func blobPaths(hash string) ([]string, error) {
 }
 
 // Returns the blobstore key for blob
-func blobKey(hash string) string {
+func BlobKey(hash string) string {
 	return fmt.Sprintf("/blob/%s", hash)
 }
