@@ -131,11 +131,11 @@ func packMakeCmd(c *commander.Command, args []string) error {
 }
 
 func packUploadCmd(c *commander.Command, args []string) error {
-	mf, err := packGenerateFiles()
-	if err != nil {
-		return err
+	mf := NewManifest("")
+	if len(*mf.Files) < 1 {
+		return fmt.Errorf("No files in manifest. " +
+			"Generate manifest with 'data pack make'")
 	}
-
 	return putBlobs(mf.AllHashes())
 }
 
