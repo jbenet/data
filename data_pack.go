@@ -130,17 +130,34 @@ func packMakeCmd(c *commander.Command, args []string) error {
 	return err
 }
 
+func packManifestCmd(c *commander.Command, args []string) error {
+	mf, err := packManifest()
+	if err != nil {
+		return err
+	}
+
+	buf, err := mf.Marshal()
+	if err != nil {
+		return err
+	}
+
+	pOut("%s", buf)
+	return nil
+}
+
 func packUploadCmd(c *commander.Command, args []string) error {
-	mf := NewManifest("")
-	if len(*mf.Files) < 1 {
-		return fmt.Errorf("No files in manifest. " +
-			"Generate manifest with 'data pack make'")
+	mf, err := packManifest()
+	if err != nil {
+		return err
 	}
 	return putBlobs(mf.AllHashes())
 }
 
 func packDownloadCmd(c *commander.Command, args []string) error {
-	mf := NewManifest("")
+	mf, err := packManifest()
+	if err != nil {
+		return err
+	}
 	return getBlobs(mf.AllHashes())
 }
 
@@ -177,5 +194,14 @@ func packGenerateFiles() (*Manifest, error) {
 		return nil, err
 	}
 
+	return mf, nil
+}
+
+func packManifest() (*Manifest, error) {
+	mf := NewManifest("")
+	if len(*mf.Files) < 1 {
+		return nil, fmt.Errorf("No files in manifest. " +
+			"Generate manifest with 'data pack make'")
+	}
 	return mf, nil
 }
