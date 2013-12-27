@@ -117,6 +117,7 @@ func init() {
 type blobStore interface {
 	Put(key string, value io.Reader) error
 	Get(key string) (io.ReadCloser, error)
+	Url(key string) string
 }
 
 // Handles arguments and dispatches subcommand.
