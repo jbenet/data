@@ -13,6 +13,7 @@ var cmd_data_pack = &commander.Command{
     Commands:
 
       pack make       Create or update package description.
+      pack manifest   Show current package manifest.
       pack upload     Upload package to remote storage.
       pack download   Download package from remote storage.
       pack checksum   Verify all file checksums match.
@@ -34,6 +35,11 @@ var cmd_data_pack = &commander.Command{
     'Packing' is the process of generating the package's Datafile and
     Manifest. The Manifest is built automatically, but the Datafile
     requires user input, to specify name, author, description, etc.
+
+    data pack manifest
+
+    Shows the current package manifest. This may be out of date with the
+    current directory contents.
 
     data pack upload
 
@@ -58,6 +64,7 @@ var cmd_data_pack = &commander.Command{
 
 	Subcommands: []*commander.Command{
 		cmd_data_pack_make,
+		cmd_data_pack_manifest,
 		cmd_data_pack_upload,
 		cmd_data_pack_download,
 		cmd_data_pack_check,
@@ -76,6 +83,19 @@ var cmd_data_pack_make = &commander.Command{
     See 'data pack'.
   `,
 	Run: packMakeCmd,
+}
+
+var cmd_data_pack_manifest = &commander.Command{
+	UsageLine: "manifest",
+	Short:     "Show current package manifest.",
+	Long: `data pack manifest - Show current package manifest.
+
+    Shows the package's manifest file and exits.
+    If no manifest file exists, exit with an error.
+
+    See 'data pack'.
+  `,
+	Run: packManifestCmd,
 }
 
 var cmd_data_pack_upload = &commander.Command{
