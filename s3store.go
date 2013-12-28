@@ -34,7 +34,7 @@ func NewS3Store(bucket string) (*S3Store, error) {
 	return s, nil
 }
 
-func (s S3Store) setupConfig() error {
+func (s *S3Store) setupConfig() error {
 	s.config = &s3util.Config{
 		Service: s3.DefaultService,
 		Keys:    new(s3.Keys),
@@ -51,14 +51,14 @@ func (s S3Store) setupConfig() error {
 	return nil
 }
 
-func (s S3Store) Url(key string) string {
+func (s *S3Store) Url(key string) string {
 	if !strings.HasPrefix(key, "/") {
 		key = "/" + key
 	}
 	return fmt.Sprintf("http://%s.%s%s", s.bucket, s.domain, key)
 }
 
-func (s S3Store) Put(key string, value io.Reader) error {
+func (s *S3Store) Put(key string, value io.Reader) error {
 	url := s.Url(key)
 	w, err := s3util.Create(url, nil, s.config)
 	if err != nil {
@@ -78,7 +78,7 @@ func (s S3Store) Put(key string, value io.Reader) error {
 	return nil
 }
 
-func (s S3Store) Get(key string) (io.ReadCloser, error) {
+func (s *S3Store) Get(key string) (io.ReadCloser, error) {
 	url := s.Url(key)
 	return s3util.Open(url, s.config)
 }
