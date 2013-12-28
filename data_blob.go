@@ -18,6 +18,7 @@ var cmd_data_blob = &commander.Command{
 
       put <hash>    Upload blob named by <hash> to blobstore.
       get <hash>    Download blob named by <hash> from blobstore.
+      url <hash>    Output Url for blob named by <hash>.
       check <hash>  Verify blob contents named by <hash> match <hash>.
       show <hash>   Output blob contents named by <hash>.
 
@@ -64,6 +65,7 @@ var cmd_data_blob = &commander.Command{
 	Subcommands: []*commander.Command{
 		cmd_data_blob_put,
 		cmd_data_blob_get,
+		cmd_data_blob_url,
 	},
 }
 
@@ -109,10 +111,31 @@ Arguments:
 	Flag: *flag.NewFlagSet("data-blob-get", flag.ExitOnError),
 }
 
+var cmd_data_blob_url = &commander.Command{
+	UsageLine: "url <hash>",
+	Short:     "Output Url for blob named by <hash>.",
+	Long: `data blob url - Output Url for blob named by <hash>.
+
+    Output the remote storage url for the blob contents named by <hash>.
+    In the future, the blobstore will be able to be changed. For now,
+    the default blobstore/datadex is used.
+
+    See data blob.
+
+Arguments:
+
+    <hash>   name (cryptographic hash, checksum) of the blob.
+
+  `,
+	Run:  blobUrlCmd,
+	Flag: *flag.NewFlagSet("data-blob-url", flag.ExitOnError),
+}
+
 func init() {
 	cmd_data_blob.Flag.Bool("all", false, "all available blobs")
 	cmd_data_blob_get.Flag.Bool("all", false, "get all available blobs")
 	cmd_data_blob_put.Flag.Bool("all", false, "put all available blobs")
+	cmd_data_blob_url.Flag.Bool("all", false, "urls for all available blobs")
 }
 
 type blobStore interface {
@@ -157,6 +180,14 @@ func blobPutCmd(c *commander.Command, args []string) error {
 		return err
 	}
 	return putBlobs(hashes)
+}
+
+func blobUrlCmd(c *commander.Command, args []string) error {
+	hashes, err := blobCmd(c, args)
+	if err != nil {
+		return err
+	}
+	return urlBlobs(hashes)
 }
 
 // Uploads all blobs named by `hashes` from blobstore
@@ -229,6 +260,26 @@ func getBlobs(hashes []string) error {
 	return nil
 }
 
+// Shows all urls for blobs named by `hashes`
+func urlBlobs(hashes []string) error {
+
+	hashes, err := validHashes(hashes)
+	if err != nil {
+		return err
+	}
+
+	dataIndex, err := NewMainDataIndex()
+	if err != nil {
+		return err
+	}
+
+	for _, hash := range hashes {
+		pOut("%v\n", dataIndex.urlBlob(hash))
+	}
+
+	return nil
+}
+
 // DataIndex extension to handle putting blob
 func (i *DataIndex) putBlob(hash string, path string) error {
 	f, err := os.Open(path)
@@ -282,6 +333,11 @@ func (i *DataIndex) getBlob(hash string, path string) error {
 	}
 
 	return nil
+}
+
+// DataIndex extension to handle getting blob url
+func (i *DataIndex) urlBlob(hash string) string {
+	return i.BlobStore.Url(BlobKey(hash))
 }
 
 // Returns all paths associated with blob
