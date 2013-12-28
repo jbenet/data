@@ -131,6 +131,9 @@ func blobCmd(c *commander.Command, args []string) ([]string, error) {
 	if all {
 		mf := NewManifest("")
 		hashes = mf.AllHashes()
+		if len(hashes) < 1 {
+			return nil, fmt.Errorf("%v: no blobs in manifest.", c.FullName())
+		}
 	}
 
 	if len(hashes) < 1 {
