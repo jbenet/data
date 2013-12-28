@@ -84,7 +84,8 @@ Arguments:
     <hash>   name (cryptographic hash, checksum) of the blob.
 
   `,
-	Run: blobPutCmd,
+	Run:  blobPutCmd,
+	Flag: *flag.NewFlagSet("data-blob-put", flag.ExitOnError),
 }
 
 var cmd_data_blob_get = &commander.Command{
