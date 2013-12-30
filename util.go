@@ -1,7 +1,10 @@
 package data
 
 import (
+	"bufio"
+	"crypto/sha1"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"unicode"
@@ -47,6 +50,18 @@ func isHash(hash string) bool {
 
 func shortHash(hash string) string {
 	return hash[:7]
+}
+
+func readerHash(r io.Reader) (string, error) {
+	bf := bufio.NewReader(r)
+	h := sha1.New()
+	_, err := bf.WriteTo(h)
+	if err != nil {
+		return "", err
+	}
+
+	hex := fmt.Sprintf("%x", h.Sum(nil))
+	return hex, nil
 }
 
 func copyFile(src string, dst string) error {

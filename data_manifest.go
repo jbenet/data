@@ -1,8 +1,6 @@
 package data
 
 import (
-	"bufio"
-	"crypto/sha1"
 	"fmt"
 	"github.com/jbenet/commander"
 	"os"
@@ -255,13 +253,5 @@ func hashFile(path string) (string, error) {
 	}
 	defer f.Close()
 
-	bf := bufio.NewReader(f)
-	h := sha1.New()
-	_, err = bf.WriteTo(h)
-	if err != nil {
-		return "", err
-	}
-
-	hex := fmt.Sprintf("%x", h.Sum(nil))
-	return hex, nil
+	return readerHash(f)
 }
