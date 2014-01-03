@@ -47,6 +47,7 @@ var cmd_data_manifest = &commander.Command{
 	Subcommands: []*commander.Command{
 		cmd_data_manifest_add,
 		cmd_data_manifest_rm,
+		cmd_data_manifest_hash,
 	},
 }
 
@@ -89,9 +90,29 @@ Arguments:
 	Flag: *flag.NewFlagSet("data-manifest-rm", flag.ExitOnError),
 }
 
+var cmd_data_manifest_hash = &commander.Command{
+	UsageLine: "hash <file>",
+	Short:     "Hashes <file> and adds checksum to manifest.",
+	Long: `data manifest hash - Hashes <file> and adds checksum to manifest.
+
+		Hashing files in the manifest calculates the file checksums. This command
+    hashes the given <file>, adds it to the manifest, and exits.
+
+    See 'data manifest'.
+
+Arguments:
+
+    <file>   path of the file to hash.
+
+  `,
+	Run:  manifestHashCmd,
+	Flag: *flag.NewFlagSet("data-manifest-hash", flag.ExitOnError),
+}
+
 func init() {
 	cmd_data_manifest_add.Flag.Bool("all", false, "add all available files")
 	cmd_data_manifest_rm.Flag.Bool("all", false, "remove all tracked files")
+	cmd_data_manifest_hash.Flag.Bool("all", false, "hash all tracked files")
 }
 
 func manifestCmd(c *commander.Command, args []string) error {
@@ -144,6 +165,34 @@ func manifestRmCmd(c *commander.Command, args []string) error {
 	// remove files from manifest file
 	for _, f := range paths {
 		err := mf.Remove(f)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func manifestHashCmd(c *commander.Command, args []string) error {
+	mf := NewManifest("")
+	paths := args
+
+	// Use all files available if --all is passed in.
+	all := c.Flag.Lookup("all").Value.Get().(bool)
+	if all {
+		paths = []string{}
+		for path, _ := range *mf.Files {
+			paths = append(paths, path)
+		}
+	}
+
+	if len(paths) < 1 {
+		return fmt.Errorf("%v: no files to hash.", c.FullName())
+	}
+
+	// hash files in manifest file
+	for _, f := range paths {
+		err := mf.Hash(f)
 		if err != nil {
 			return err
 		}
