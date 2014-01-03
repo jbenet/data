@@ -1,6 +1,7 @@
 package data
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/jbenet/commander"
 	"os"
@@ -254,4 +255,14 @@ func hashFile(path string) (string, error) {
 	defer f.Close()
 
 	return readerHash(f)
+}
+
+func (mf *Manifest) ManifestHash() (string, error) {
+	buf, err := mf.Marshal()
+	if err != nil {
+		return "", err
+	}
+
+	r := bytes.NewReader(buf)
+	return readerHash(r)
 }
