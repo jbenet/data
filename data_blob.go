@@ -139,6 +139,7 @@ func init() {
 }
 
 type blobStore interface {
+	Has(key string) (bool, error)
 	Put(key string, value io.Reader) error
 	Get(key string) (io.ReadCloser, error)
 	Url(key string) string

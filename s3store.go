@@ -58,6 +58,22 @@ func (s *S3Store) Url(key string) string {
 	return fmt.Sprintf("http://%s.%s%s", s.bucket, s.domain, key)
 }
 
+func (s *S3Store) Has(key string) (bool, error) {
+	url := s.Url(key)
+	rc, err := s3util.Open(url, s.config)
+
+	if err == nil {
+		rc.Close()
+		return true, nil
+	}
+
+	if strings.Contains(err.Error(), "unwanted http status 404:") {
+		return false, nil
+	}
+
+	return false, err
+}
+
 func (s *S3Store) Put(key string, value io.Reader) error {
 	url := s.Url(key)
 	w, err := s3util.Create(url, nil, s.config)
