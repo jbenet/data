@@ -3,6 +3,7 @@ package data
 import (
 	"bytes"
 	"fmt"
+	"github.com/gonuts/flag"
 	"github.com/jbenet/commander"
 	"os"
 	"path/filepath"
@@ -34,6 +35,7 @@ var cmd_data_manifest = &commander.Command{
       hash <file>     Hashes <file> and adds checksum to manifest.
       check <file>    Verifies <file> checksum matches manifest.
 
+    (use the --all flag to do it to all available files)
 
     Loosely, data-manifest's process is:
 
@@ -42,12 +44,64 @@ var cmd_data_manifest = &commander.Command{
     - Hash tracked files, adding checksums to the manifest.
   `,
 	Run: manifestCmd,
-	// Subcommands: []*commander.Command{}
+	Subcommands: []*commander.Command{
+		cmd_data_manifest_add,
+	},
+}
+
+var cmd_data_manifest_add = &commander.Command{
+	UsageLine: "add <file>",
+	Short:     "Adds <file> to manifest (does not hash).",
+	Long: `data manifest add - Adds <file> to manifest (does not hash).
+
+    Adding files to the manifest ensures they are tracked. This command
+    adds the given <file> to the manifest, saves it, and exits. It does
+    not automatically hash the file (run 'data manifest hash').
+
+    See 'data manifest'.
+
+Arguments:
+
+    <file>   path of the file to add.
+
+  `,
+	Run:  manifestAddCmd,
+	Flag: *flag.NewFlagSet("data-manifest-add", flag.ExitOnError),
+}
+
+func init() {
+	cmd_data_manifest_add.Flag.Bool("all", false, "add all available files")
 }
 
 func manifestCmd(c *commander.Command, args []string) error {
 	mf := NewManifest("")
 	return mf.Generate()
+}
+
+func manifestAddCmd(c *commander.Command, args []string) error {
+	mf := NewManifest("")
+
+	paths := args
+
+	// Use all files available if --all is passed in.
+	all := c.Flag.Lookup("all").Value.Get().(bool)
+	if all {
+		paths = listAllFiles(".")
+	}
+
+	if len(paths) < 1 {
+		return fmt.Errorf("%v: no files to add.", c.FullName())
+	}
+
+	// add files to manifest file
+	for _, f := range paths {
+		err := mf.Add(f)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 type Manifest struct {
