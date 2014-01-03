@@ -93,7 +93,10 @@ func (mf *Manifest) Generate() error {
 	// add new files to manifest file
 	// (for now add everything. `data manifest {add,rm}` in future)
 	for _, f := range listAllFiles(".") {
-		mf.Add(f)
+		err := mf.Add(f)
+		if err != nil {
+			return err
+		}
 	}
 
 	// warn about manifest-listed files missing from directory
@@ -122,13 +125,23 @@ func (mf *Manifest) Clear() error {
 	return mf.WriteFile()
 }
 
-func (mf *Manifest) Add(path string) {
+func (mf *Manifest) Add(path string) error {
 	// check, dont override (could have hash value)
 	_, exists := (*mf.Files)[path]
-	if !exists {
-		(*mf.Files)[path] = noHash
-		pOut("data manifest: added %s\n", path)
+	if exists {
+		return nil
 	}
+
+	(*mf.Files)[path] = noHash
+
+	// Write out file (store incrementally)
+	err := mf.WriteFile()
+	if err != nil {
+		return err
+	}
+
+	pOut("data manifest: added %s\n", path)
+	return nil
 }
 
 func (mf *Manifest) Hash(path string) error {
