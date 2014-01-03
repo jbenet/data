@@ -14,8 +14,8 @@ const noHash = "h"
 
 var cmd_data_manifest = &commander.Command{
 	UsageLine: "manifest [[ add | remove | hash | check ] <path>]",
-	Short:     "Generate dataset manifest.",
-	Long: `data manifest - Generate dataset manifest.
+	Short:     "Generate and manipulate dataset manifest.",
+	Long: `data manifest - Generate and manipulate dataset manifest.
 
     Generates and manipulates this dataset's manifest. The manifest
     is a mapping of { <path>: <checksum>}, and describes all files
@@ -23,9 +23,9 @@ var cmd_data_manifest = &commander.Command{
     hashing (checksum) files.
 
     Running data-manifest without arguments will generate (or patch)
-    the manifest and store it in the dataset's repository. Note that
-    already hashed files will not be re-hashed unless forced to. Some
-    files may be massive, and hashing every run would be expensive.
+    the manifest. Note that already hashed files will not be re-hashed
+    unless forced to. Some files may be massive, and hashing every run
+    would be prohibitively expensive.
 
     Commands:
 
