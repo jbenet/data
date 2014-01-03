@@ -170,7 +170,24 @@ func packUploadCmd(c *commander.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	return putBlobs(mf.AllHashes())
+
+	err = putBlobs(mf.AllHashes())
+	if err != nil {
+		return err
+	}
+
+	// upload manifest too.
+	dataIndex, err := NewMainDataIndex()
+	if err != nil {
+		return err
+	}
+
+	hash, err := mf.ManifestHash()
+	if err != nil {
+		return nil
+	}
+
+	return dataIndex.putBlob(hash, mf.Path)
 }
 
 func packDownloadCmd(c *commander.Command, args []string) error {
