@@ -10,7 +10,7 @@ import (
 )
 
 const DataManifest = "Manifest"
-const noHash = "h"
+const noHash = "<to be hashed>"
 
 var cmd_data_manifest = &commander.Command{
 	UsageLine: "manifest [[ add | remove | hash | check ] <path>]",
@@ -101,7 +101,7 @@ func (mf *Manifest) Generate() error {
 
 	// Once all files are listed, hash all the files, storing the hashes.
 	for f, h := range *mf.Files {
-		if h != noHash {
+		if isHash(h) && h != noHash {
 			continue
 		}
 
