@@ -46,6 +46,7 @@ var cmd_data_manifest = &commander.Command{
 	Run: manifestCmd,
 	Subcommands: []*commander.Command{
 		cmd_data_manifest_add,
+		cmd_data_manifest_rm,
 	},
 }
 
@@ -69,8 +70,28 @@ Arguments:
 	Flag: *flag.NewFlagSet("data-manifest-add", flag.ExitOnError),
 }
 
+var cmd_data_manifest_rm = &commander.Command{
+	UsageLine: "rm <file>",
+	Short:     "Removes <file> from manifest.",
+	Long: `data manifest rm - Removes <file> from manifest.
+
+    Removing files from the manifest stops tracking them. This command
+    removes the given <file> (and hash) from the manifest, and exits.
+
+    See 'data manifest'.
+
+Arguments:
+
+    <file>   path of the file to remove.
+
+  `,
+	Run:  manifestRmCmd,
+	Flag: *flag.NewFlagSet("data-manifest-rm", flag.ExitOnError),
+}
+
 func init() {
 	cmd_data_manifest_add.Flag.Bool("all", false, "add all available files")
+	cmd_data_manifest_rm.Flag.Bool("all", false, "remove all tracked files")
 }
 
 func manifestCmd(c *commander.Command, args []string) error {
@@ -80,7 +101,6 @@ func manifestCmd(c *commander.Command, args []string) error {
 
 func manifestAddCmd(c *commander.Command, args []string) error {
 	mf := NewManifest("")
-
 	paths := args
 
 	// Use all files available if --all is passed in.
@@ -96,6 +116,34 @@ func manifestAddCmd(c *commander.Command, args []string) error {
 	// add files to manifest file
 	for _, f := range paths {
 		err := mf.Add(f)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func manifestRmCmd(c *commander.Command, args []string) error {
+	mf := NewManifest("")
+	paths := args
+
+	// Use all files available if --all is passed in.
+	all := c.Flag.Lookup("all").Value.Get().(bool)
+	if all {
+		paths = []string{}
+		for path, _ := range *mf.Files {
+			paths = append(paths, path)
+		}
+	}
+
+	if len(paths) < 1 {
+		return fmt.Errorf("%v: no files to remove.", c.FullName())
+	}
+
+	// remove files from manifest file
+	for _, f := range paths {
+		err := mf.Remove(f)
 		if err != nil {
 			return err
 		}
@@ -195,6 +243,25 @@ func (mf *Manifest) Add(path string) error {
 	}
 
 	pOut("data manifest: added %s\n", path)
+	return nil
+}
+
+func (mf *Manifest) Remove(path string) error {
+	// check, dont remove nonexistent path
+	_, exists := (*mf.Files)[path]
+	if !exists {
+		return nil
+	}
+
+	delete(*mf.Files, path)
+
+	// Write out file (store incrementally)
+	err := mf.WriteFile()
+	if err != nil {
+		return err
+	}
+
+	pOut("data manifest: removed %s\n", path)
 	return nil
 }
 
