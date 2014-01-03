@@ -120,6 +120,26 @@ func manifestCmd(c *commander.Command, args []string) error {
 	return mf.Generate()
 }
 
+func manifestCmdPaths(c *commander.Command, args []string) ([]string, error) {
+	mf := NewManifest("")
+	paths := args
+
+	// Use all files available if --all is passed in.
+	all := c.Flag.Lookup("all").Value.Get().(bool)
+	if all {
+		paths = []string{}
+		for path, _ := range *mf.Files {
+			paths = append(paths, path)
+		}
+	}
+
+	if len(paths) < 1 {
+		return nil, fmt.Errorf("%v: no files specified.", c.FullName())
+	}
+
+	return paths, nil
+}
+
 func manifestAddCmd(c *commander.Command, args []string) error {
 	mf := NewManifest("")
 	paths := args
@@ -131,7 +151,7 @@ func manifestAddCmd(c *commander.Command, args []string) error {
 	}
 
 	if len(paths) < 1 {
-		return fmt.Errorf("%v: no files to add.", c.FullName())
+		return fmt.Errorf("%v: no files specified.", c.FullName())
 	}
 
 	// add files to manifest file
@@ -147,19 +167,10 @@ func manifestAddCmd(c *commander.Command, args []string) error {
 
 func manifestRmCmd(c *commander.Command, args []string) error {
 	mf := NewManifest("")
-	paths := args
 
-	// Use all files available if --all is passed in.
-	all := c.Flag.Lookup("all").Value.Get().(bool)
-	if all {
-		paths = []string{}
-		for path, _ := range *mf.Files {
-			paths = append(paths, path)
-		}
-	}
-
-	if len(paths) < 1 {
-		return fmt.Errorf("%v: no files to remove.", c.FullName())
+	paths, err := manifestCmdPaths(c, args)
+	if err != nil {
+		return err
 	}
 
 	// remove files from manifest file
@@ -175,19 +186,10 @@ func manifestRmCmd(c *commander.Command, args []string) error {
 
 func manifestHashCmd(c *commander.Command, args []string) error {
 	mf := NewManifest("")
-	paths := args
 
-	// Use all files available if --all is passed in.
-	all := c.Flag.Lookup("all").Value.Get().(bool)
-	if all {
-		paths = []string{}
-		for path, _ := range *mf.Files {
-			paths = append(paths, path)
-		}
-	}
-
-	if len(paths) < 1 {
-		return fmt.Errorf("%v: no files to hash.", c.FullName())
+	paths, err := manifestCmdPaths(c, args)
+	if err != nil {
+		return err
 	}
 
 	// hash files in manifest file
