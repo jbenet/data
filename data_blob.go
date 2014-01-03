@@ -211,7 +211,6 @@ func putBlobs(hashes []string) error {
 			return err
 		}
 
-		pOut("put blob %.7s %s\n", hash, paths[0])
 		err = dataIndex.putBlob(hash, paths[0])
 		if err != nil {
 			return err
@@ -242,7 +241,6 @@ func getBlobs(hashes []string) error {
 		}
 
 		// download one blob
-		pOut("get blob %.7s %s\n", hash, paths[0])
 		err = dataIndex.getBlob(hash, paths[0])
 		if err != nil {
 			return err
@@ -250,7 +248,7 @@ func getBlobs(hashes []string) error {
 
 		// copy what we got to others
 		for _, path := range paths[1:] {
-			pOut("get blob %.7s %s\n", hash, path)
+			pOut("copy blob %.7s %s\n", hash, path)
 			err := copyFile(paths[0], path)
 			if err != nil {
 				return err
@@ -283,6 +281,20 @@ func urlBlobs(hashes []string) error {
 
 // DataIndex extension to handle putting blob
 func (i *DataIndex) putBlob(hash string, path string) error {
+
+	// first, check the blobstore doesn't already have it.
+	exists, err := i.BlobStore.Has(BlobKey(hash))
+	if err != nil {
+		return err
+	}
+
+	if exists {
+		pOut("put blob %.7s %s - exists\n", hash, path)
+		return nil
+	}
+
+	pOut("put blob %.7s %s - uploading\n", hash, path)
+
 	f, err := os.Open(path)
 	if err != nil {
 		return err
@@ -305,6 +317,8 @@ func (i *DataIndex) putBlob(hash string, path string) error {
 
 // DataIndex extension to handle getting blob
 func (i *DataIndex) getBlob(hash string, path string) error {
+	pOut("get blob %.7s %s\n", hash, path)
+
 	r, err := i.BlobStore.Get(BlobKey(hash))
 	if err != nil {
 		return err
