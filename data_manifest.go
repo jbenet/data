@@ -48,6 +48,7 @@ var cmd_data_manifest = &commander.Command{
 		cmd_data_manifest_add,
 		cmd_data_manifest_rm,
 		cmd_data_manifest_hash,
+		cmd_data_manifest_check,
 	},
 }
 
@@ -109,10 +110,31 @@ Arguments:
 	Flag: *flag.NewFlagSet("data-manifest-hash", flag.ExitOnError),
 }
 
+var cmd_data_manifest_check = &commander.Command{
+	UsageLine: "check <file>",
+	Short:     "Verifies <file> checksum matches manifest.",
+	Long: `data manifest check - Verifies <file> checksum matches manifest.
+
+		The manifest lists the files and their checksums. This command
+    hashes the given <file>, and prints whether its checksum matches the
+    stored checksum.
+
+    See 'data manifest'.
+
+Arguments:
+
+    <file>   path of the file to check.
+
+  `,
+	Run:  manifestCheckCmd,
+	Flag: *flag.NewFlagSet("data-manifest-check", flag.ExitOnError),
+}
+
 func init() {
 	cmd_data_manifest_add.Flag.Bool("all", false, "add all available files")
 	cmd_data_manifest_rm.Flag.Bool("all", false, "remove all tracked files")
 	cmd_data_manifest_hash.Flag.Bool("all", false, "hash all tracked files")
+	cmd_data_manifest_check.Flag.Bool("all", false, "check all tracked files")
 }
 
 func manifestCmd(c *commander.Command, args []string) error {
@@ -198,6 +220,35 @@ func manifestHashCmd(c *commander.Command, args []string) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func manifestCheckCmd(c *commander.Command, args []string) error {
+	mf := NewManifest("")
+
+	paths, err := manifestCmdPaths(c, args)
+	if err != nil {
+		return err
+	}
+
+	// hash files in manifest file
+	failed := 0
+	for _, f := range paths {
+		pass, err := mf.Check(f)
+		if err != nil {
+			// return err
+		}
+
+		if !pass {
+			failed++
+		}
+	}
+
+	if failed > 0 {
+		return fmt.Errorf("data manifest check: %d/%d checksums failed.",
+			failed, len(paths))
 	}
 
 	return nil
@@ -334,25 +385,25 @@ func (mf *Manifest) Hash(path string) error {
 	return nil
 }
 
-func (mf *Manifest) Check(path string) error {
+func (mf *Manifest) Check(path string) (bool, error) {
 	oldHash, found := (*mf.Files)[path]
 	if !found {
-		return fmt.Errorf("data manifest: file not in manifest %s", path)
+		return false, fmt.Errorf("data manifest: file not in manifest %s", path)
 	}
 
 	newHash, err := hashFile(path)
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	mfmt := "data manifest: checksum %.7s %s %s"
+	mfmt := "data manifest: check %.7s %s %s"
 	if newHash != oldHash {
 		pOut(mfmt, oldHash, path, "FAIL\n")
-		return fmt.Errorf(mfmt, oldHash, path, "FAIL")
+		return false, nil
 	}
 
 	dOut(mfmt, oldHash, path, "PASS\n")
-	return nil
+	return true, nil
 }
 
 func (mf *Manifest) PathsForHash(hash string) ([]string, error) {

@@ -199,21 +199,26 @@ func packDownloadCmd(c *commander.Command, args []string) error {
 }
 
 func packCheckCmd(c *commander.Command, args []string) error {
-	count := 0
+	failures := 0
 
 	mf := NewManifest("")
 	for _, file := range mf.AllPaths() {
-		err := mf.Check(file)
+		pass, err := mf.Check(file)
 		if err != nil {
-			count++
+			return err
+		}
+
+		if !pass {
+			failures++
 		}
 	}
 
-	if count > 0 {
-		return fmt.Errorf("data pack: %v checksums failed!", count)
+	count := len(*mf.Files)
+	if failures > 0 {
+		return fmt.Errorf("data pack: %v/%v checksums failed!", failures, count)
 	}
 
-	pOut("data pack: %v checksums pass\n", len(*mf.Files))
+	pOut("data pack: %v checksums pass\n", count)
 	return nil
 }
 
