@@ -182,3 +182,9 @@ between versions.
 This design reduces storage both remotely (the datadex service de-duplicates
 across all indexed datasets) and locally (users' computers keep one blob cache
 for all installed datasets).
+
+Note: why version control ourselves rather than using git? git isn't great for
+huge files yet. It could begin supporting a dup-like rolling checksum, and thus
+better version large files. Also, there is another project in the works that
+data could leverage. The manifest versioning solution is good enough until one
+of those strategies pans out.

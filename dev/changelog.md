@@ -1,6 +1,13 @@
 # data changelog
 
 
+## v0.0.5 2014-01-
+
+Publishing + downloading packages.
+
+- data publish
+- data get
+
 ## v0.0.4 2014-01-03
 
 Manifest manipulation and packaging.
