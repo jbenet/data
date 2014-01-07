@@ -392,8 +392,13 @@ func (p *Pack) Publish(force bool) error {
 	}
 
 	// ok seems good to go.
-	pOut("data pack: publishing %s (%.7s)...\n", h.Dataset(), mfh)
-	return ri.Put(mfh)
+	err = ri.Put(mfh)
+	if err != nil {
+		return err
+	}
+
+	pOut("data pack: published %s (%.7s).\n", h.Dataset(), mfh)
+	return nil
 }
 
 const PublishedVersionDiffersMsg = `Version %s (%.7s) already published, but contents differ.

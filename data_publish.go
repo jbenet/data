@@ -1,7 +1,6 @@
 package data
 
 import (
-	"fmt"
 	"github.com/jbenet/commander"
 )
 
@@ -36,5 +35,5 @@ func publishCmd(c *commander.Command, args []string) error {
 	}
 
 	pOut("\n==> Step 3/3: Publishing the package to the index.\n")
-	return fmt.Errorf("publishing not implemented yet")
+	return packPublishCmd(c, []string{})
 }
