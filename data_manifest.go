@@ -406,27 +406,22 @@ func (mf *Manifest) Check(path string) (bool, error) {
 	return true, nil
 }
 
-func (mf *Manifest) PathsForHash(hash string) ([]string, error) {
+func (mf *Manifest) PathsForHash(hash string) []string {
 	l := []string{}
 	for path, h := range *mf.Files {
 		if h == hash {
 			l = append(l, path)
 		}
 	}
-
-	if len(l) > 0 {
-		return l, nil
-	}
-
-	return l, fmt.Errorf("Hash %v is not tracked in the manifest.", hash)
+	return l
 }
 
-func (mf *Manifest) HashForPath(path string) (string, error) {
+func (mf *Manifest) HashForPath(path string) string {
 	hash, exists := (*mf.Files)[path]
 	if exists {
-		return hash, nil
+		return hash
 	}
-	return "", fmt.Errorf("Path %v is not tracked in the manifest.", path)
+	return ""
 }
 
 func (mf *Manifest) AllPaths() []string {
@@ -443,6 +438,22 @@ func (mf *Manifest) AllHashes() []string {
 		l = append(l, h)
 	}
 	return l
+}
+
+func (mf *Manifest) Complete() bool {
+	// must have at least one file (Datafile)
+	if len(*mf.Files) < 1 {
+		return false
+	}
+
+	// all hashes must be computed
+	for _, h := range *mf.Files {
+		if !isHash(h) || h == noHash {
+			return false
+		}
+	}
+
+	return true
 }
 
 func listAllFiles(path string) []string {

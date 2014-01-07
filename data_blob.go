@@ -191,7 +191,7 @@ func blobUrlCmd(c *commander.Command, args []string) error {
 	return urlBlobs(hashes)
 }
 
-// Uploads all blobs named by `hashes` from blobstore
+// Uploads all blobs named by `hashes` to blobstore
 func putBlobs(hashes []string) error {
 
 	hashes, err := validHashes(hashes)
@@ -283,7 +283,7 @@ func urlBlobs(hashes []string) error {
 func (i *DataIndex) putBlob(hash string, path string) error {
 
 	// first, check the blobstore doesn't already have it.
-	exists, err := i.BlobStore.Has(BlobKey(hash))
+	exists, err := i.hasBlob(hash)
 	if err != nil {
 		return err
 	}
@@ -350,6 +350,11 @@ func (i *DataIndex) getBlob(hash string, path string) error {
 	return nil
 }
 
+// DataIndex extension to check if blob exists
+func (i *DataIndex) hasBlob(hash string) (bool, error) {
+	return i.BlobStore.Has(BlobKey(hash))
+}
+
 // DataIndex extension to handle getting blob url
 func (i *DataIndex) urlBlob(hash string) string {
 	return i.BlobStore.Url(BlobKey(hash))
@@ -358,7 +363,19 @@ func (i *DataIndex) urlBlob(hash string) string {
 // Returns all paths associated with blob
 func blobPaths(hash string) ([]string, error) {
 	mf := NewManifest("")
-	return mf.PathsForHash(hash)
+
+	paths := mf.PathsForHash(hash)
+
+	mfh, err := mf.ManifestHash()
+	if err != nil {
+		return []string{}, err
+	}
+
+	if mfh == hash {
+		paths = append(paths, mf.Path)
+	}
+
+	return paths, nil
 }
 
 // Returns the blobstore key for blob

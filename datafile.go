@@ -56,6 +56,10 @@ func DatafilePath(dataset string) string {
 }
 
 func NewDatafile(path string) (*Datafile, error) {
+	if len(path) < 1 {
+		path = DatasetFile
+	}
+
 	df := &Datafile{SerializedFile: SerializedFile{Path: path}}
 	df.SerializedFile.Format = df
 

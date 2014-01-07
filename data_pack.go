@@ -146,17 +146,21 @@ var cmd_data_pack_check = &commander.Command{
 }
 
 func packMakeCmd(c *commander.Command, args []string) error {
-	_, err := packGenerateFiles()
-	return err
-}
-
-func packManifestCmd(c *commander.Command, args []string) error {
-	mf, err := packManifest()
+	p, err := NewPack()
 	if err != nil {
 		return err
 	}
 
-	buf, err := mf.Marshal()
+	return p.GenerateFiles()
+}
+
+func packManifestCmd(c *commander.Command, args []string) error {
+	p, err := NewPack()
+	if err != nil {
+		return err
+	}
+
+	buf, err := p.manifest.Marshal()
 	if err != nil {
 		return err
 	}
@@ -166,44 +170,57 @@ func packManifestCmd(c *commander.Command, args []string) error {
 }
 
 func packUploadCmd(c *commander.Command, args []string) error {
-	mf, err := packManifest()
+	p, err := NewPack()
 	if err != nil {
 		return err
 	}
 
-	err = putBlobs(mf.AllHashes())
+	if !p.manifest.Complete() {
+		return fmt.Errorf(`Manifest incomplete. Before uploading, either:
+      - Generate new package manifest with 'data pack make' (uses all files).
+      - Finish manifest with 'data manifest' (add and hash specific files).
+    `)
+	}
+
+	hashes, err := p.BlobHashes()
 	if err != nil {
 		return err
 	}
 
-	// upload manifest too.
-	dataIndex, err := NewMainDataIndex()
-	if err != nil {
-		return err
-	}
-
-	hash, err := mf.ManifestHash()
-	if err != nil {
-		return nil
-	}
-
-	return dataIndex.putBlob(hash, mf.Path)
+	return putBlobs(hashes)
 }
 
 func packDownloadCmd(c *commander.Command, args []string) error {
-	mf, err := packManifest()
+	p, err := NewPack()
 	if err != nil {
 		return err
 	}
-	return getBlobs(mf.AllHashes())
+	if !p.manifest.Complete() {
+		return fmt.Errorf(`Manifest incomplete. Get new manifest copy.`)
+	}
+
+	hashes, err := p.BlobHashes()
+	if err != nil {
+		return err
+	}
+
+	return getBlobs(hashes)
 }
 
 func packCheckCmd(c *commander.Command, args []string) error {
+	p, err := NewPack()
+	if err != nil {
+		return err
+	}
+
+	if !p.manifest.Complete() {
+		pOut("Warning: manifest incomplete. Checksums may be incorrect.")
+	}
+
 	failures := 0
 
-	mf := NewManifest("")
-	for _, file := range mf.AllPaths() {
-		pass, err := mf.Check(file)
+	for _, file := range p.manifest.AllPaths() {
+		pass, err := p.manifest.Check(file)
 		if err != nil {
 			return err
 		}
@@ -213,7 +230,7 @@ func packCheckCmd(c *commander.Command, args []string) error {
 		}
 	}
 
-	count := len(*mf.Files)
+	count := len(*p.manifest.Files)
 	if failures > 0 {
 		return fmt.Errorf("data pack: %v/%v checksums failed!", failures, count)
 	}
@@ -222,28 +239,73 @@ func packCheckCmd(c *commander.Command, args []string) error {
 	return nil
 }
 
-func packGenerateFiles() (*Manifest, error) {
+type Pack struct {
+	manifest *Manifest
+	datafile *Datafile
+	index    *DataIndex
+}
 
-	// ensure the dataset has required information
-	err := fillOutDatafileInPath(DatasetFile)
+func NewPack() (p *Pack, err error) {
+	p = &Pack{}
+	p.manifest = NewManifest("")
+
+	p.datafile, _ = NewDatafile("")
+	// ignore error loading datafile
+
+	p.index, err = NewMainDataIndex()
 	if err != nil {
 		return nil, err
+	}
+
+	return p, nil
+}
+
+func (p *Pack) BlobHashes() ([]string, error) {
+	mfh, err := p.manifest.ManifestHash()
+	if err != nil {
+		return []string{}, err
+	}
+
+	hashes := p.manifest.AllHashes()
+	hashes = append(hashes, mfh)
+	return hashes, nil
+}
+
+func (p *Pack) GenerateFiles() error {
+
+	// ensure the dataset has required information
+	err := fillOutDatafileInPath(p.datafile.Path)
+	if err != nil {
+		return err
 	}
 
 	// regenerate manifest
-	mf, err := NewGeneratedManifest("")
+	p.manifest, err = NewGeneratedManifest("")
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return mf, nil
+	return nil
 }
 
-func packManifest() (*Manifest, error) {
-	mf := NewManifest("")
-	if len(*mf.Files) < 1 {
-		return nil, fmt.Errorf("No files in manifest. " +
-			"Generate manifest with 'data pack make'")
+// Check the blobstore to check which blobs in pack have not been uploaded.
+func (p *Pack) blobsToUpload() ([]string, error) {
+	missing := []string{}
+
+	hashes, err := p.BlobHashes()
+	if err != nil {
+		return []string{}, err
 	}
-	return mf, nil
+
+	for _, hash := range hashes {
+		exists, err := p.index.hasBlob(hash)
+		if err != nil {
+			return []string{}, err
+		}
+
+		if !exists {
+			missing = append(missing, hash)
+		}
+	}
+	return missing, nil
 }
