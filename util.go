@@ -144,7 +144,7 @@ func httpGet(url string) (*http.Response, error) {
 	}
 
 	resp.Body.Close()
-	return nil, fmt.Errorf("HTTP error status code: %s", c)
+	return nil, fmt.Errorf("HTTP error status code: %d", c)
 }
 
 func httpPost(url string, bt string, b io.Reader) (*http.Response, error) {
@@ -160,7 +160,7 @@ func httpPost(url string, bt string, b io.Reader) (*http.Response, error) {
 	}
 
 	resp.Body.Close()
-	return nil, fmt.Errorf("HTTP error status code: %v", c)
+	return nil, fmt.Errorf("HTTP error status code: %d", c)
 }
 
 func httpReadAll(url string) ([]byte, error) {
