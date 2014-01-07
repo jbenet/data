@@ -5,8 +5,12 @@ import (
 	"crypto/sha1"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
+	"path"
+	"strings"
 	"unicode"
 )
 
@@ -109,26 +113,59 @@ func isUrl(str string) bool {
 	return strings.HasPrefix(str, "http://") || strings.HasPrefix(str, "https://")
 }
 
-func downloadUrl(url string) (*http.Response, error) {
+func httpExists(url string) (bool, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return false, err
+	}
+	defer resp.Body.Close()
 
+	c := resp.StatusCode
+	switch {
+	case 200 <= c && c < 400:
+		return true, nil
+	case 400 <= c && c < 500:
+		return false, nil
+	default:
+		return false, fmt.Errorf("Network or server error retrieving: %s", url)
+	}
+}
+
+func httpGet(url string) (*http.Response, error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
 	}
 
-	if resp.StatusCode >= 400 {
-		return nil, fmt.Errorf("Got HTTP status code >= 400: %s", resp.Status)
+	c := resp.StatusCode
+	if 200 <= c && c < 400 {
+		return resp, nil
 	}
 
-	return resp, nil
+	resp.Body.Close()
+	return nil, fmt.Errorf("HTTP error status code: %s", c)
 }
 
-func urlContents(url string) ([]byte, error) {
-	resp, err := downloadUrl(url)
+func httpPost(url string, bt string, b io.Reader) (*http.Response, error) {
+	resp, err := http.Post(url, bt, b)
 	if err != nil {
 		return nil, err
 	}
 
+	c := resp.StatusCode
+	if 200 <= c && c < 400 {
+		return resp, nil
+	}
+
+	resp.Body.Close()
+	return nil, fmt.Errorf("HTTP error status code: %v", c)
+}
+
+func httpReadAll(url string) ([]byte, error) {
+	resp, err := httpGet(url)
+	if err != nil {
+		return nil, err
+	}
 	defer resp.Body.Close()
 
 	contents, err := ioutil.ReadAll(resp.Body)
@@ -139,8 +176,8 @@ func urlContents(url string) ([]byte, error) {
 	return contents, nil
 }
 
-func downloadUrlToFile(url string, filename string) error {
-	resp, err := downloadUrl(url)
+func httpWriteToFile(url string, filename string) error {
+	resp, err := httpGet(url)
 	if err != nil {
 		return err
 	}

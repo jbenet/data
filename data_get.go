@@ -3,11 +3,7 @@ package data
 import (
 	"fmt"
 	"github.com/jbenet/commander"
-	"io"
-	"io/ioutil"
-	"net/http"
 	"os"
-	"os/exec"
 	"path"
 	"strings"
 )
@@ -78,7 +74,7 @@ func downloadDatasetArchive(archiveUrl string) error {
 	// download the archive
 	// TODO: add local caching of downloads
 	pOut("Downloading archive at %s\n", archiveUrl)
-	err := downloadUrlToFile(archiveUrl, arch)
+	err := httpWriteToFile(archiveUrl, arch)
 	if err != nil {
 		return err
 	}
