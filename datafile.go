@@ -72,6 +72,15 @@ func NewDefaultDatafile() (*Datafile, error) {
 	return NewDatafile(DatafileName)
 }
 
+func NewDatafileWithRef(ref string) (*Datafile, error) {
+	f, _ := NewDatafile("")
+	err := f.ReadBlob(ref)
+	if err != nil {
+		return nil, err
+	}
+	return f, nil
+}
+
 func (d *Datafile) Handle() *Handle {
 	return NewHandle(d.Dataset)
 }

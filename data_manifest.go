@@ -277,6 +277,15 @@ func NewDefaultManifest() *Manifest {
 	return NewManifest(ManifestFileName)
 }
 
+func NewManifestWithRef(ref string) (*Manifest, error) {
+	f := NewManifest("")
+	err := f.ReadBlob(ref)
+	if err != nil {
+		return nil, err
+	}
+	return f, nil
+}
+
 func (mf *Manifest) Generate() error {
 	pOut("Generating manifest...\n")
 

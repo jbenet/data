@@ -80,6 +80,25 @@ func (f *SerializedFile) ReadFile() error {
 	return f.Unmarshal(buf)
 }
 
+func (f *SerializedFile) ReadBlob(ref string) error {
+	i, err := NewMainDataIndex()
+	if err != nil {
+		return err
+	}
+
+	r, err := i.BlobStore.Get(BlobKey(ref))
+	if err != nil {
+		return err
+	}
+
+	err = f.Read(r)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func Marshal(in interface{}) (io.Reader, error) {
 	buf, err := goyaml.Marshal(in)
 	if err != nil {
