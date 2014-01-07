@@ -18,21 +18,20 @@ the [roadmap](dev/roadmap.md).
 ## Usage
 
 ```
-data is a dataset package manager.
-
-Usage:
-
-    data <command> [arguments]
+data - dataset package manager
 
 Commands:
 
-    get       Download and install dataset.
-    list      List installed datasets.
-    info      Show dataset information.
-    help      Show usage information.
-    version   Show data version information.
-    upload    Upload dataset to storage service.
-    manifest  Generate dataset manifest.
+    version     Show data version information.
+    info        Show dataset information.
+    list        List installed datasets.
+    get         Download and install dataset.
+    manifest    Generate and manipulate dataset manifest.
+    pack        Dataset packaging, upload, and download.
+    blob        Manage blobs in the blobstore.
+    publish     Guided dataset publishing.
+
+Use "data help <command>" for more information about a command.
 ```
 
 ### data get
@@ -69,14 +68,28 @@ dataset: foo/bar@1.1
 dataset: foo/bar@1.1
 ```
 
-### data upload
+### data publish
 
 ```
-> data upload
-Uploading objects to datadex storage service...(12/123) 54%
+> data publish
+==> Guided Data Package Publishing.
+
+==> Step 1/3: Creating the package.
+Verifying Datafile fields...
+Generating manifest...
+
+==> Step 2/3: Uploading the package contents.
+put blob 0d0c669 Datafile
+put blob 63443e4 data.csv
+put blob 8a2e6f6 Manifest
+
+==> Step 3/3: Publishing the package to the index.
+data pack: published foo/bar@1.1 (8a2e6f6).
 ```
 
-### data manifest
+Et voila! You can now use `data get foo/bar` to retrieve it!
+
+### data manifest (plumbing)
 
 ```
 > data manifest add filename
@@ -90,6 +103,128 @@ filename: 61a66fda64e397a82d9f0c8b7b3f7ba6bca79b12
 
 > data manifest rm filename
 data manifest: removed filename
+```
+
+### data blob (plumbing)
+```
+data blob - Manage blobs in the blobstore.
+
+Commands:
+
+    put         Upload blobs to a remote blobstore.
+    get         Download blobs from a remote blobstore.
+    url         Output Url for blob named by <hash>.
+
+Use "blob help <command>" for more information about a command.
+```
+
+```
+> cat Manifest
+Datafile: 0d0c669b4c2b05402d9cc87298f3d7ce372a4c80
+data.csv: 63443e4d74c3a170499fa9cfde5ae2224060b09e
+data.txt: 63443e4d74c3a170499fa9cfde5ae2224060b09e
+data.xsl: 63443e4d74c3a170499fa9cfde5ae2224060b09e
+
+> data blob put --all
+put blob 0d0c669 Datafile
+put blob 63443e4 data.csv
+
+> data blob get 63443e4d74c3a170499fa9cfde5ae2224060b09e
+data blob get 63443e4d74c3a170499fa9cfde5ae2224060b09e
+get blob 63443e4 data.csv
+copy blob 63443e4 data.txt
+copy blob 63443e4 data.xsl
+
+> data blob url
+http://datadex.archives.s3.amazonaws.com/blob/0d0c669b4c2b05402d9cc87298f3d7ce372a4c80
+http://datadex.archives.s3.amazonaws.com/blob/63443e4d74c3a170499fa9cfde5ae2224060b09e
+```
+
+### data pack (plumbing)
+
+```
+data pack - Dataset packaging, upload, and download.
+
+Commands:
+
+    make        Create or update package description.
+    manifest    Show current package manifest.
+    upload      Upload package contents to remote storage.
+    download    Download package contents from remote storage.
+    publish     Publish package reference to dataset index.
+    check       Verify all file checksums match.
+
+Use "pack help <command>" for more information about a command.
+```
+
+
+```
+> ls
+data.csv  data.txt  data.xsl
+
+> cat data.*
+BAR BAR BAR
+BAR BAR BAR
+BAR BAR BAR
+
+> data pack make # interactive
+Verifying Datafile fields...
+Enter author name (required): foo
+Enter dataset id (required): bar
+Enter dataset version (required): 1.1
+Enter dataset title (optional): Barrr
+Enter description (optional): A bar dataset.
+Enter license name (optional): MIT
+Generating manifest...
+data manifest: hashed 0d0c669 Datafile
+data manifest: hashed 63443e4 data.csv
+data manifest: hashed 63443e4 data.txt
+data manifest: hashed 63443e4 data.xsl
+
+> ls
+Datafile  Manifest  data.csv  data.txt  data.xsl
+
+> data pack manifest
+Datafile: 0d0c669b4c2b05402d9cc87298f3d7ce372a4c80
+data.csv: 63443e4d74c3a170499fa9cfde5ae2224060b09e
+data.txt: 63443e4d74c3a170499fa9cfde5ae2224060b09e
+data.xsl: 63443e4d74c3a170499fa9cfde5ae2224060b09e
+
+> data pack upload
+put blob 0d0c669 Datafile
+put blob 63443e4 data.csv
+put blob 8a2e6f6 Manifest
+
+> rm data.*
+
+> ls
+Datafile  Manifest
+
+> data pack download
+get blob 63443e4 data.csv
+copy blob 63443e4 data.txt
+copy blob 63443e4 data.xsl
+
+> ls
+Datafile  Manifest  data.csv  data.txt  data.xsl
+
+> data pack check
+data pack: 4 checksums pass
+
+> echo "FOO FOO FOO" > data.csv
+
+> data pack check
+data manifest: check 63443e4 data.csv FAIL
+data pack: 1/4 checksums failed!
+
+> data pack download
+copy blob 63443e4 data.csv
+
+> data pack check
+data pack: 4 checksums pass
+
+> data pack publish
+data pack: published foo/bar@1.1 (8a2e6f6).
 ```
 
 ## Datafile
