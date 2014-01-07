@@ -10,7 +10,7 @@ var cmd_data_pack = &commander.Command{
 	Short:     "Dataset packaging, upload, and download.",
 	Long: `data pack - Dataset packaging, upload, and download.
 
-    Commands:
+  Commands:
 
       pack make       Create or update package description.
       pack manifest   Show current package manifest.
@@ -19,7 +19,7 @@ var cmd_data_pack = &commander.Command{
       pack checksum   Verify all file checksums match.
 
 
-    What is a data package?
+  What is a data package?
 
     A data package represents a single dataset, a unit of information.
     data makes it easy to find, download, create, publish, and maintain
@@ -30,36 +30,34 @@ var cmd_data_pack = &commander.Command{
     - Manifest, containing dataset file paths and checksums
     (See 'data help datafile' and 'data help manifest'.)
 
-    data pack make
+  data pack make
 
     'Packing' is the process of generating the package's Datafile and
     Manifest. The Manifest is built automatically, but the Datafile
     requires user input, to specify name, author, description, etc.
 
-    data pack manifest
+  data pack manifest
 
     Shows the current package manifest. This may be out of date with the
     current directory contents.
 
-    data pack upload
+  data pack upload
 
     Packages, once 'packed' (Datafile + Manifest created), can be uploaded
     to a remote storage service (by default, the datadex). This means
     uploading all the package's files (blobs) not already present in the
     storage service. This is determined using a checksum.
 
-    data pack download
+  data pack download
 
     Similarly, packages can be downloaded or reconstructed in any directory
     from the Datafile and Manifest. Running 'data pack download' ensures
     all files listed in the Manifest are downloaded to the directory.
 
-    data pack checksum
+  data pack checksum
 
     Packages can be verified entirely by calling the 'data pack checksum'
     command. It re-hashes every file and ensures the checksums match.
-
-    Packages can be published to the dataset index using 'data publish'.
   `,
 
 	Subcommands: []*commander.Command{

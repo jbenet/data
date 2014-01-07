@@ -26,7 +26,7 @@ import (
   sources: [<source urls>]
 */
 
-// Serializbale into YAML
+// Serializable into YAML
 type datafileContents struct {
 	Dataset string
 	Title   string ",omitempty"
