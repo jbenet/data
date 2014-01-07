@@ -277,8 +277,8 @@ func (p *Pack) GenerateFiles() error {
 		return err
 	}
 
-	// regenerate manifest
-	p.manifest, err = NewGeneratedManifest("")
+	// generate manifest
+	err = p.manifest.Generate()
 	if err != nil {
 		return err
 	}

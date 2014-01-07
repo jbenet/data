@@ -275,22 +275,6 @@ func NewManifest(path string) *Manifest {
 	return mf
 }
 
-func NewGeneratedManifest(path string) (*Manifest, error) {
-	mf := NewManifest(path)
-
-	err := mf.Clear()
-	if err != nil {
-		return nil, err
-	}
-
-	err = mf.Generate()
-	if err != nil {
-		return nil, err
-	}
-
-	return mf, nil
-}
-
 func (mf *Manifest) Generate() error {
 	pOut("Generating manifest...\n")
 
