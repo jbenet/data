@@ -44,7 +44,7 @@ type datafileContents struct {
 }
 
 type Datafile struct {
-	file             "-"
+	SerializedFile   "-"
 	datafileContents ",inline"
 }
 
@@ -56,8 +56,8 @@ func DatafilePath(dataset string) string {
 }
 
 func NewDatafile(path string) (*Datafile, error) {
-	df := &Datafile{file: file{Path: path}}
-	df.file.format = df
+	df := &Datafile{SerializedFile: SerializedFile{Path: path}}
+	df.SerializedFile.Format = df
 
 	err := df.ReadFile()
 	if err != nil {

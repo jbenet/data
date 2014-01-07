@@ -8,18 +8,18 @@ import (
 	"path"
 )
 
-type file struct {
+type SerializedFile struct {
 	Path   string      "-"
-	format interface{} "-"
+	Format interface{} "-"
 }
 
-func (f *file) Marshal() ([]byte, error) {
+func (f *SerializedFile) Marshal() ([]byte, error) {
 	dOut("Marshalling %s\n", f.Path)
-	return goyaml.Marshal(f.format)
+	return goyaml.Marshal(f.Format)
 }
 
-func (f *file) Unmarshal(buf []byte) error {
-	err := goyaml.Unmarshal(buf, f.format)
+func (f *SerializedFile) Unmarshal(buf []byte) error {
+	err := goyaml.Unmarshal(buf, f.Format)
 	if err != nil {
 		return err
 	}
@@ -28,7 +28,7 @@ func (f *file) Unmarshal(buf []byte) error {
 	return nil
 }
 
-func (f *file) Write(w io.Writer) error {
+func (f *SerializedFile) Write(w io.Writer) error {
 	buf, err := f.Marshal()
 	if err != nil {
 		return err
@@ -38,7 +38,7 @@ func (f *file) Write(w io.Writer) error {
 	return err
 }
 
-func (f *file) Read(r io.Reader) error {
+func (f *SerializedFile) Read(r io.Reader) error {
 	buf, err := ioutil.ReadAll(r)
 	if err != nil {
 		return err
@@ -47,7 +47,7 @@ func (f *file) Read(r io.Reader) error {
 	return f.Unmarshal(buf)
 }
 
-func (f *file) WriteFile() error {
+func (f *SerializedFile) WriteFile() error {
 	buf, err := f.Marshal()
 	if err != nil {
 		return err
@@ -61,7 +61,7 @@ func (f *file) WriteFile() error {
 	return ioutil.WriteFile(f.Path, buf, 0666)
 }
 
-func (f *file) ReadFile() error {
+func (f *SerializedFile) ReadFile() error {
 	buf, err := ioutil.ReadFile(f.Path)
 	if err != nil {
 		return err

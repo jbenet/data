@@ -255,8 +255,8 @@ func manifestCheckCmd(c *commander.Command, args []string) error {
 }
 
 type Manifest struct {
-	file  "-"
-	Files *map[string]string ""
+	SerializedFile "-"
+	Files          *map[string]string ""
 }
 
 func NewManifest(path string) *Manifest {
@@ -264,11 +264,11 @@ func NewManifest(path string) *Manifest {
 		path = DataManifest
 	}
 
-	mf := &Manifest{file: file{Path: path}}
+	mf := &Manifest{SerializedFile: SerializedFile{Path: path}}
 
 	// initialize map
 	mf.Files = &map[string]string{}
-	mf.file.format = mf.Files
+	mf.SerializedFile.Format = mf.Files
 
 	// attempt to load
 	mf.ReadFile()
