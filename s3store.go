@@ -43,11 +43,6 @@ func (s *S3Store) setupConfig() error {
 	// move keys to config. for now use env key.
 	s.config.AccessKey = os.Getenv("S3_ACCESS_KEY")
 	s.config.SecretKey = os.Getenv("S3_SECRET_KEY")
-
-	if len(s.config.AccessKey) < 1 {
-		return fmt.Errorf("no S3_ACCESS_KEY env variable provided.")
-	}
-
 	return nil
 }
 
@@ -59,6 +54,10 @@ func (s *S3Store) Url(key string) string {
 }
 
 func (s *S3Store) Has(key string) (bool, error) {
+	if len(s.config.AccessKey) < 1 {
+		return false, fmt.Errorf("no S3_ACCESS_KEY env variable provided.")
+	}
+
 	url := s.Url(key)
 	rc, err := s3util.Open(url, s.config)
 
@@ -75,6 +74,10 @@ func (s *S3Store) Has(key string) (bool, error) {
 }
 
 func (s *S3Store) Put(key string, value io.Reader) error {
+	if len(s.config.AccessKey) < 1 {
+		return fmt.Errorf("no S3_ACCESS_KEY env variable provided.")
+	}
+
 	url := s.Url(key)
 	w, err := s3util.Create(url, nil, s.config)
 	if err != nil {
@@ -95,6 +98,10 @@ func (s *S3Store) Put(key string, value io.Reader) error {
 }
 
 func (s *S3Store) Get(key string) (io.ReadCloser, error) {
+	if len(s.config.AccessKey) < 1 {
+		return nil, fmt.Errorf("no S3_ACCESS_KEY env variable provided.")
+	}
+
 	url := s.Url(key)
 	return s3util.Open(url, s.config)
 }
