@@ -96,3 +96,106 @@ func validHashes(hashes []string) (valid []string, err error) {
 
 	return
 }
+
+// Url utils
+
+const ArchiveSuffix = ".tar.gz"
+
+func IsArchiveUrl(str string) bool {
+	return isUrl(str) && strings.HasSuffix(str, ArchiveSuffix)
+}
+
+func isUrl(str string) bool {
+	return strings.HasPrefix(str, "http://") || strings.HasPrefix(str, "https://")
+}
+
+func downloadUrl(url string) (*http.Response, error) {
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode >= 400 {
+		return nil, fmt.Errorf("Got HTTP status code >= 400: %s", resp.Status)
+	}
+
+	return resp, nil
+}
+
+func urlContents(url string) ([]byte, error) {
+	resp, err := downloadUrl(url)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	contents, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return contents, nil
+}
+
+func downloadUrlToFile(url string, filename string) error {
+	resp, err := downloadUrl(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	file, err := createFile(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = io.Copy(file, resp.Body)
+	return err
+}
+
+func createFile(filename string) (*os.File, error) {
+	err := os.MkdirAll(path.Dir(filename), 0777)
+	if err != nil {
+		return nil, err
+	}
+
+	file, err := os.Create(filename)
+	if err != nil {
+		return nil, err
+	}
+	return file, err
+}
+
+// Extraction
+func extractArchive(filename string) error {
+	file, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	dst := strings.TrimSuffix(filename, ArchiveSuffix)
+	err = os.MkdirAll(dst, 0777)
+	if err != nil {
+		return err
+	}
+
+	dst = path.Base(dst)
+	src := path.Base(filename)
+	cmd := exec.Command("tar", "xzf", src, "--strip-components", "1", "-C", dst)
+	cmd.Dir = path.Dir(filename)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		outs := string(out)
+		if strings.Contains(outs, "Error opening archive:") {
+			return fmt.Errorf(outs)
+		}
+
+		return err
+	}
+
+	return nil
+}
