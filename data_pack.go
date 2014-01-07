@@ -3,6 +3,7 @@ package data
 import (
 	"fmt"
 	"github.com/jbenet/commander"
+	"strings"
 )
 
 var cmd_data_pack = &commander.Command{
@@ -54,6 +55,13 @@ var cmd_data_pack = &commander.Command{
     from the Datafile and Manifest. Running 'data pack download' ensures
     all files listed in the Manifest are downloaded to the directory.
 
+  data pack publish
+
+    Packages can be published to the dataset index. Running 'data pack
+    publish' posts the current manifest reference (hash) to the index.
+    The package should already be uploaded (to the storage service).
+    Publishing requires index credentials (see 'data user').
+
   data pack checksum
 
     Packages can be verified entirely by calling the 'data pack checksum'
@@ -65,6 +73,7 @@ var cmd_data_pack = &commander.Command{
 		cmd_data_pack_manifest,
 		cmd_data_pack_upload,
 		cmd_data_pack_download,
+		cmd_data_pack_publish,
 		cmd_data_pack_check,
 	},
 }
@@ -128,6 +137,22 @@ var cmd_data_pack_download = &commander.Command{
 	Run: packDownloadCmd,
 }
 
+var cmd_data_pack_publish = &commander.Command{
+	UsageLine: "publish",
+	Short:     "Publish package reference to dataset index.",
+	Long: `data pack publish - Publish package reference to dataset index.
+
+    Publishes pckage's manifest reference (hash) to the dataset index.
+    Package manifest (and all blobs) should be already uploaded. If any
+    blob has not been uploaded, publish will exit with an error.
+
+    Note: publishing requires data index credentials; see 'data user'.
+
+    See 'data pack'.
+  `,
+	Run: packPublishCmd,
+}
+
 var cmd_data_pack_check = &commander.Command{
 	UsageLine: "check",
 	Short:     "Verify all file checksums match.",
@@ -174,10 +199,7 @@ func packUploadCmd(c *commander.Command, args []string) error {
 	}
 
 	if !p.manifest.Complete() {
-		return fmt.Errorf(`Manifest incomplete. Before uploading, either:
-      - Generate new package manifest with 'data pack make' (uses all files).
-      - Finish manifest with 'data manifest' (add and hash specific files).
-    `)
+		return fmt.Errorf(ManifestIncompleteMsg)
 	}
 
 	hashes, err := p.BlobHashes()
@@ -203,6 +225,15 @@ func packDownloadCmd(c *commander.Command, args []string) error {
 	}
 
 	return getBlobs(hashes)
+}
+
+func packPublishCmd(c *commander.Command, args []string) error {
+	p, err := NewPack()
+	if err != nil {
+		return err
+	}
+
+	return p.Publish(false)
 }
 
 func packCheckCmd(c *commander.Command, args []string) error {
@@ -307,3 +338,84 @@ func (p *Pack) blobsToUpload() ([]string, error) {
 	}
 	return missing, nil
 }
+
+// Publishes pack to the Index
+func (p *Pack) Publish(force bool) error {
+
+	// ensure datafile has required info
+	if !p.datafile.Valid() {
+		return fmt.Errorf(`Datafile invalid. Try running 'data pack make'`)
+	}
+
+	// ensure manifest is complete
+	if !p.manifest.Complete() {
+		return fmt.Errorf(`Manifest incomplete. Before uploading, either:
+      - Generate new package manifest with 'data pack make' (uses all files).
+      - Finish manifest with 'data manifest' (add and hash specific files).
+    `)
+	}
+
+	// ensure all blobs have been uploaded
+	missing, err := p.blobsToUpload()
+	if err != nil {
+		return err
+	}
+	if len(missing) > 0 {
+		return fmt.Errorf("%s objects must be uploaded first."+
+			" Run 'data pack upload'.", len(missing))
+	}
+
+	mfh, err := p.manifest.ManifestHash()
+	if err != nil {
+		return err
+	}
+
+	// Check dataset version isn't already taken.
+	h := p.datafile.Handle()
+	ri := p.index.RefIndex(h.Path())
+	ref, err := ri.VersionRef(h.Version)
+	if err != nil {
+		if strings.Contains(err.Error(), "connection refused") {
+			return fmt.Errorf(NetErrMsg, p.index.Url)
+		}
+		return err
+	}
+
+	if ref != "" {
+
+		if ref == mfh {
+			pOut(PublishedVersionSameMsg, h.Version, ref)
+			return nil
+		}
+
+		return fmt.Errorf(PublishedVersionDiffersMsg, h.Version, ref, h.Dataset())
+	}
+
+	// ok seems good to go.
+	pOut("data pack: publishing %s (%.7s)...\n", h.Dataset(), mfh)
+	return ri.Put(mfh)
+}
+
+const PublishedVersionDiffersMsg = `Version %s (%.7s) already published, but contents differ.
+If you're trying to publish a new version, increment the version
+number in Datafile, and then try again:
+
+    Dataset: %s  <--- change this number
+
+If you're trying to _overwrite_ the published version with this one,
+you may do so with the '--force' flag. However, this is not advised.
+Make sure you are aware of all side-effects; you might break compatibility
+for everyone else using this dataset. You have been warned.`
+
+const PublishedVersionSameMsg = `Version %s (%.7s) already published.
+It has the same contents you're trying to publish, so seems like
+your work here is done :)
+`
+
+const NetErrMsg = `Connection to the index refused.
+Are you connected to the internet?
+Is the dataset index down? Check %s`
+
+const ManifestIncompleteMsg = `Manifest incomplete. Before uploading, either:
+  - Generate new package manifest with 'data pack make' (uses all files).
+  - Finish manifest with 'data manifest' (add and hash specific files).`
