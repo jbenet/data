@@ -1,6 +1,7 @@
 package data
 
 import (
+	"bytes"
 	"io"
 	"io/ioutil"
 	"launchpad.net/goyaml"
@@ -68,4 +69,28 @@ func (f *SerializedFile) ReadFile() error {
 	}
 
 	return f.Unmarshal(buf)
+}
+
+func Marshal(in interface{}) (io.Reader, error) {
+	buf, err := goyaml.Marshal(in)
+	if err != nil {
+		return nil, err
+	}
+
+	// dOut("<Marshal>\n")
+	// dOut("%s\n", buf)
+	// dOut("</Marshal>\n")
+	return bytes.NewReader(buf), nil
+}
+
+func Unmarshal(in io.Reader, out interface{}) error {
+	buf, err := ioutil.ReadAll(in)
+	if err != nil {
+		return err
+	}
+
+	// dOut("<Unmarshal>\n")
+	// dOut("%s\n", buf)
+	// dOut("</Unmarshal>\n")
+	return goyaml.Unmarshal(buf, out)
 }
