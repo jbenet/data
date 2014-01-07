@@ -49,25 +49,27 @@ type Datafile struct {
 }
 
 const DatasetDir = "datasets"
-const DatasetFile = "Datafile"
+const DatafileName = "Datafile"
 
 func DatafilePath(dataset string) string {
-	return path.Join(DatasetDir, dataset, DatasetFile)
+	return path.Join(DatasetDir, dataset, DatafileName)
 }
 
 func NewDatafile(path string) (*Datafile, error) {
-	if len(path) < 1 {
-		path = DatasetFile
-	}
-
 	df := &Datafile{SerializedFile: SerializedFile{Path: path}}
 	df.SerializedFile.Format = df
 
-	err := df.ReadFile()
-	if err != nil {
-		return nil, err
+	if len(path) > 0 {
+		err := df.ReadFile()
+		if err != nil {
+			return df, err
+		}
 	}
 	return df, nil
+}
+
+func NewDefaultDatafile() (*Datafile, error) {
+	return NewDatafile(DatafileName)
 }
 
 func (d *Datafile) Handle() *Handle {

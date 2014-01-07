@@ -2,6 +2,7 @@ package data
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"launchpad.net/goyaml"
@@ -49,6 +50,10 @@ func (f *SerializedFile) Read(r io.Reader) error {
 }
 
 func (f *SerializedFile) WriteFile() error {
+	if len(f.Path) < 1 {
+		return fmt.Errorf("SerializedFile: No path provided for writing.")
+	}
+
 	buf, err := f.Marshal()
 	if err != nil {
 		return err
@@ -63,6 +68,10 @@ func (f *SerializedFile) WriteFile() error {
 }
 
 func (f *SerializedFile) ReadFile() error {
+	if len(f.Path) < 1 {
+		return fmt.Errorf("SerializedFile: No path provided for reading.")
+	}
+
 	buf, err := ioutil.ReadFile(f.Path)
 	if err != nil {
 		return err

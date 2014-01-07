@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-const DataManifest = "Manifest"
+const ManifestFileName = "Manifest"
 const noHash = "<to be hashed>"
 
 var cmd_data_manifest = &commander.Command{
@@ -138,12 +138,12 @@ func init() {
 }
 
 func manifestCmd(c *commander.Command, args []string) error {
-	mf := NewManifest("")
+	mf := NewDefaultManifest()
 	return mf.Generate()
 }
 
 func manifestCmdPaths(c *commander.Command, args []string) ([]string, error) {
-	mf := NewManifest("")
+	mf := NewDefaultManifest()
 	paths := args
 
 	// Use all files available if --all is passed in.
@@ -163,7 +163,7 @@ func manifestCmdPaths(c *commander.Command, args []string) ([]string, error) {
 }
 
 func manifestAddCmd(c *commander.Command, args []string) error {
-	mf := NewManifest("")
+	mf := NewDefaultManifest()
 	paths := args
 
 	// Use all files available if --all is passed in.
@@ -188,7 +188,7 @@ func manifestAddCmd(c *commander.Command, args []string) error {
 }
 
 func manifestRmCmd(c *commander.Command, args []string) error {
-	mf := NewManifest("")
+	mf := NewDefaultManifest()
 
 	paths, err := manifestCmdPaths(c, args)
 	if err != nil {
@@ -207,7 +207,7 @@ func manifestRmCmd(c *commander.Command, args []string) error {
 }
 
 func manifestHashCmd(c *commander.Command, args []string) error {
-	mf := NewManifest("")
+	mf := NewDefaultManifest()
 
 	paths, err := manifestCmdPaths(c, args)
 	if err != nil {
@@ -226,7 +226,7 @@ func manifestHashCmd(c *commander.Command, args []string) error {
 }
 
 func manifestCheckCmd(c *commander.Command, args []string) error {
-	mf := NewManifest("")
+	mf := NewDefaultManifest()
 
 	paths, err := manifestCmdPaths(c, args)
 	if err != nil {
@@ -260,10 +260,6 @@ type Manifest struct {
 }
 
 func NewManifest(path string) *Manifest {
-	if len(path) < 1 {
-		path = DataManifest
-	}
-
 	mf := &Manifest{SerializedFile: SerializedFile{Path: path}}
 
 	// initialize map
@@ -271,8 +267,14 @@ func NewManifest(path string) *Manifest {
 	mf.SerializedFile.Format = mf.Files
 
 	// attempt to load
-	mf.ReadFile()
+	if len(path) > 0 {
+		mf.ReadFile()
+	}
 	return mf
+}
+
+func NewDefaultManifest() *Manifest {
+	return NewManifest(ManifestFileName)
 }
 
 func (mf *Manifest) Generate() error {
@@ -464,7 +466,7 @@ func listAllFiles(path string) []string {
 		}
 
 		// skip manifest file
-		if path == DataManifest {
+		if path == ManifestFileName {
 			dOut("data manifest: skipping %s\n", info.Name())
 			return nil
 		}

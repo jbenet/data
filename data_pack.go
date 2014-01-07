@@ -276,9 +276,9 @@ type Pack struct {
 
 func NewPack() (p *Pack, err error) {
 	p = &Pack{}
-	p.manifest = NewManifest("")
+	p.manifest = NewDefaultManifest()
 
-	p.datafile, _ = NewDatafile("")
+	p.datafile, _ = NewDefaultDatafile()
 	// ignore error loading datafile
 
 	p.index, err = NewMainDataIndex()

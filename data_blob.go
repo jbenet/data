@@ -153,7 +153,7 @@ func blobCmd(c *commander.Command, args []string) ([]string, error) {
 	// Use all hashes in the manifest if --all is passed in.
 	all := c.Flag.Lookup("all").Value.Get().(bool)
 	if all {
-		mf := NewManifest("")
+		mf := NewDefaultManifest()
 		hashes = mf.AllHashes()
 		if len(hashes) < 1 {
 			return nil, fmt.Errorf("%v: no blobs in manifest.", c.FullName())
@@ -362,7 +362,7 @@ func (i *DataIndex) urlBlob(hash string) string {
 
 // Returns all paths associated with blob
 func blobPaths(hash string) ([]string, error) {
-	mf := NewManifest("")
+	mf := NewDefaultManifest()
 
 	paths := mf.PathsForHash(hash)
 

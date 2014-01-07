@@ -47,7 +47,7 @@ Should download compressed files, and use array of mirrors.
 
     data manifest <subcmd>
 
-Generate the data manifest file (`.data-manifest`? `Datamanifest`?), a list of
+Generate the data manifest file (`.data/manifest`? `Manifest`?), a list of
 
     <object hash> <object filename>
 

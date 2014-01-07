@@ -88,7 +88,7 @@ func downloadDatasetArchive(archiveUrl string) error {
 
 	// find place from Datafile
 	arch_dir := strings.TrimSuffix(arch, ArchiveSuffix)
-	df, err := NewDatafile(path.Join(arch_dir, DatasetFile))
+	df, err := NewDatafile(path.Join(arch_dir, DatafileName))
 	if err != nil {
 		return err
 	}
