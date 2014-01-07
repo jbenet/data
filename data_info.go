@@ -6,29 +6,29 @@ import (
 )
 
 var cmd_data_info = &commander.Command{
-	UsageLine: "info <dataset>",
+	UsageLine: "info [<dataset>]",
 	Short:     "Show dataset information.",
 	Long: `data info - Show dataset information.
 
-    Returns the Datafile corresponding to <dataset> and exits.
+    Returns the Datafile corresponding to <dataset> (or in current
+    directory) and exits.
   `,
 	Run: infoCmd,
 }
 
 func infoCmd(c *commander.Command, args []string) error {
 	if len(args) < 1 {
-
-		return fmt.Errorf("%v requires a <dataset> argument.", c.FullName())
+		return datasetInfo(DatafileName)
 	}
 
-	return datasetInfo(args[0])
+	return datasetInfo(DatafilePath(args[0]))
 }
 
-func datasetInfo(dataset string) error {
-	df, err := NewDatafile(DatafilePath(dataset))
+func datasetInfo(path string) error {
+	df, err := NewDatafile(path)
 	if err != nil {
 		dErr("Error: %s\n", err)
-		return fmt.Errorf("Invalid dataset handle: %s", dataset)
+		return fmt.Errorf("Invalid dataset path: %s", path)
 	}
 
 	buf, err := df.Marshal()
