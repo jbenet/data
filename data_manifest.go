@@ -292,7 +292,7 @@ func (mf *Manifest) Generate() error {
 
 	// Once all files are listed, hash all the files, storing the hashes.
 	for f, h := range *mf.Files {
-		if isHash(h) && h != noHash {
+		if IsHash(h) && h != noHash {
 			continue
 		}
 
@@ -432,7 +432,7 @@ func (mf *Manifest) Complete() bool {
 
 	// all hashes must be computed
 	for _, h := range *mf.Files {
-		if !isHash(h) || h == noHash {
+		if !IsHash(h) || h == noHash {
 			return false
 		}
 	}

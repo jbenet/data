@@ -38,7 +38,7 @@ func dOut(format string, a ...interface{}) {
 }
 
 // Checks whether string is a hash (sha1)
-func isHash(hash string) bool {
+func IsHash(hash string) bool {
 	if len(hash) != 40 {
 		return false
 	}
@@ -91,7 +91,7 @@ func validHashes(hashes []string) (valid []string, err error) {
 
 	// append only valid hashes
 	for _, hash := range hashes {
-		if isHash(hash) {
+		if IsHash(hash) {
 			valid = append(valid, hash)
 		} else {
 			err = fmt.Errorf("invalid <hash>: %v", hash)
