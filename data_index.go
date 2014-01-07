@@ -31,7 +31,7 @@ func NewMainDataIndex() (*DataIndex, error) {
 		return nil, err
 	}
 
-	mainDataIndex := &DataIndex{Url: "http://datadex.io"}
+	mainDataIndex := &DataIndex{Url: "http://datadex.io:8080"}
 	mainDataIndex.BlobStore = blobStore
 	return mainDataIndex, nil
 }
