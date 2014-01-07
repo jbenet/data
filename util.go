@@ -132,6 +132,7 @@ func httpExists(url string) (bool, error) {
 }
 
 func httpGet(url string) (*http.Response, error) {
+	dOut("http get %s\n", url)
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
@@ -147,6 +148,7 @@ func httpGet(url string) (*http.Response, error) {
 }
 
 func httpPost(url string, bt string, b io.Reader) (*http.Response, error) {
+	dOut("http post %s\n", url)
 	resp, err := http.Post(url, bt, b)
 	if err != nil {
 		return nil, err

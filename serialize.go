@@ -105,9 +105,9 @@ func Marshal(in interface{}) (io.Reader, error) {
 		return nil, err
 	}
 
-	// dOut("<Marshal>\n")
-	// dOut("%s\n", buf)
-	// dOut("</Marshal>\n")
+	// pOut("<Marshal>\n")
+	// pOut("%s\n", buf)
+	// pOut("</Marshal>\n")
 	return bytes.NewReader(buf), nil
 }
 
@@ -117,8 +117,8 @@ func Unmarshal(in io.Reader, out interface{}) error {
 		return err
 	}
 
-	// dOut("<Unmarshal>\n")
-	// dOut("%s\n", buf)
-	// dOut("</Unmarshal>\n")
+	// pOut("<Unmarshal>\n")
+	// pOut("%s\n", buf)
+	// pOut("</Unmarshal>\n")
 	return goyaml.Unmarshal(buf, out)
 }
