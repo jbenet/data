@@ -54,7 +54,7 @@ foo/bar@1.1 installed
 
 ```
 > data list
-    foo/bar              @1.1
+    foo/bar@1.1
 ```
 
 ### data info

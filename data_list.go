@@ -56,8 +56,7 @@ func listDatasets(dir string) error {
 				continue
 			}
 
-			h := datafile.Handle()
-			pOut("    %-20s @%s\n", h.Path(), h.Version)
+			pOut("%s\n", datafile.Dataset)
 		}
 	}
 
