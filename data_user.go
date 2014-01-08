@@ -30,9 +30,22 @@ var cmd_data_user = &commander.Command{
     '<owner>/<dataset>'.
   `,
 	Subcommands: []*commander.Command{
-		cmd_data_user_url,
+		cmd_data_user_add,
 		cmd_data_user_info,
+		cmd_data_user_url,
 	},
+}
+
+var cmd_data_user_add = &commander.Command{
+	UsageLine: "add [<username>]",
+	Short:     "Register new user with index.",
+	Long: `data user add - Register new user with index.
+
+    Guided process to register a new user account with dataset index.
+
+    See data user.
+  `,
+	Run: userAddCmd,
 }
 
 var cmd_data_user_info = &commander.Command{
@@ -92,6 +105,31 @@ func userCmdUserIndex(args []string) (*UserIndex, error) {
 	return ui, nil
 }
 
+func userAddCmd(c *commander.Command, args []string) error {
+	ui, err := userCmdUserIndex(args)
+	if err != nil {
+		return err
+	}
+
+	pass, err := inputNewPassword()
+	if err != nil {
+		return err
+	}
+
+	email, err := inputNewEmail()
+	if err != nil {
+		return err
+	}
+
+	err = ui.Add(pass, email)
+	if err != nil {
+		return err
+	}
+
+	pOut("%s registered.\n", ui.User)
+	return nil
+}
+
 func userInfoCmd(c *commander.Command, args []string) error {
 	ui, err := userCmdUserIndex(args)
 	if err != nil {
@@ -137,6 +175,36 @@ func userUrlCmd(c *commander.Command, args []string) error {
 
 	pOut("%s\n", ui.Url(""))
 	return nil
+}
+
+const PasswordMinLength = 6
+
+func inputNewPassword() (string, error) {
+	var pass string
+	for len(pass) < PasswordMinLength {
+		pOut("Password (%d char min): ", PasswordMinLength)
+		var err error
+		pass, err = readInputSilent()
+		if err != nil {
+			return "", err
+		}
+	}
+	return pass, nil
+}
+
+func inputNewEmail() (string, error) {
+	var email string
+
+	for !EmailRegexp.MatchString(email) {
+		pOut("Email (for security): ")
+		var err error
+
+		email, err = readInput()
+		if err != nil {
+			return "", err
+		}
+	}
+	return email, nil
 }
 
 // serializable into YAML
@@ -220,8 +288,15 @@ func (i *UserIndex) Auth(pass string) error {
 	return i.postPass("user/auth", pass)
 }
 
-func (i *UserIndex) Add(pass string) error {
-	return i.postPass("user/add", pass)
+func (i *UserIndex) Add(pass string, email string) error {
+	err := i.postPass("user/add/"+email, pass)
+	if err != nil {
+		if strings.Contains(err.Error(), "user exists") {
+			m := "Error: username '%s' already in use. Try another."
+			return fmt.Errorf(m, i.User)
+		}
+	}
+	return err
 }
 
 // DataIndex extension to generate a UserIndex
