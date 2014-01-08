@@ -88,11 +88,11 @@ func fillOutUserProfile(p *UserProfile) error {
 	pOut("Editing user profile. [Current value].\n")
 
 	fields := map[string]*string{
-		"Full Name (required)":        &p.Name,
-		"Email (required)":            &p.Email,
-		"Homepage Url (optional)":     &p.Homepage,
-		"Github username (optional)":  &p.Github,
-		"Twitter username (optional)": &p.Twitter,
+		"Full Name": &p.Name,
+		// "Email (required)":            &p.Email,
+		"Homepage Url":     &p.Homepage,
+		"Github username":  &p.Github,
+		"Twitter username": &p.Twitter,
 	}
 
 	for p, f := range fields {
@@ -110,7 +110,7 @@ func fillOutUserProfileField(prompt string, field *string) error {
 	for len(*field) < 1 || first {
 		first = false
 
-		pOut("%s: [%s] ", *field, prompt)
+		pOut("%s: [%s] ", prompt, *field)
 		line, err := readInput()
 		if err != nil {
 			return err
