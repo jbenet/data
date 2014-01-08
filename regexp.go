@@ -14,13 +14,13 @@ func init() {
 	pathRE := "((" + identRE + ")/(" + identRE + "))"
 	handleRE := "^" + pathRE + "(\\." + identRE + ")?(@" + identRE + ")?$"
 
-	UserRegexp = CompileRegexp(identRE)
-	NameRegexp = CompileRegexp(identRE)
-	PathRegexp = CompileRegexp(pathRE)
-	HandleRegexp = CompileRegexp(handleRE)
+	UserRegexp = compileRegexp(identRE)
+	NameRegexp = compileRegexp(identRE)
+	PathRegexp = compileRegexp(pathRE)
+	HandleRegexp = compileRegexp(handleRE)
 }
 
-func CompileRegexp(s string) *regexp.Regexp {
+func compileRegexp(s string) *regexp.Regexp {
 	r, err := regexp.Compile(s)
 	if err != nil {
 		pOut("%s", err)
