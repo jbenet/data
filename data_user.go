@@ -20,8 +20,8 @@ var cmd_data_user = &commander.Command{
     Commands:
 
       add [<username>]   Register new user with index.
-      auth <username>    Re-authenticates as user.
-      pass [<username>]  Changes user password.
+      auth <username>    Re-authenticate as user.
+      pass [<username>]  Change user password.
       info [<username>]  Show (or edit) public user information.
       url [<username>]   Output user profile url.
 
@@ -31,6 +31,7 @@ var cmd_data_user = &commander.Command{
   `,
 	Subcommands: []*commander.Command{
 		cmd_data_user_add,
+		cmd_data_user_pass,
 		cmd_data_user_info,
 		cmd_data_user_url,
 	},
@@ -46,6 +47,18 @@ var cmd_data_user_add = &commander.Command{
     See data user.
   `,
 	Run: userAddCmd,
+}
+
+var cmd_data_user_pass = &commander.Command{
+	UsageLine: "pass [<username>]",
+	Short:     "Change user password.",
+	Long: `data user pass - Change user password.
+
+    Guided process to change user account password with dataset index.
+
+    See data user.
+  `,
+	Run: userPassCmd,
 }
 
 var cmd_data_user_info = &commander.Command{
@@ -127,6 +140,33 @@ func userAddCmd(c *commander.Command, args []string) error {
 	}
 
 	pOut("%s registered.\n", ui.User)
+	return nil
+}
+
+func userPassCmd(c *commander.Command, args []string) error {
+	ui, err := userCmdUserIndex(args)
+	if err != nil {
+		return err
+	}
+
+	pOut("Current Password: ")
+	curp, err := readInputSilent()
+	if err != nil {
+		return err
+	}
+
+	pOut("New ")
+	newp, err := inputNewPassword()
+	if err != nil {
+		return err
+	}
+
+	err = ui.Pass(curp, newp)
+	if err != nil {
+		return err
+	}
+
+	pOut("Password changed. You will receive an email notification.\n")
 	return nil
 }
 
@@ -227,6 +267,13 @@ func (i UserIndex) Url(url string) string {
 	return i.BaseUrl + "/" + i.User + "/" + url
 }
 
+func (i UserIndex) Passhash(pass string) (string, error) {
+	// additional hashing of the password before sending.
+	// this resulting `passhash` is really the user's password.
+	// this is so that passwords are never seen by the server as plaintext
+	return stringHash(pass + i.User)
+}
+
 func (i *UserIndex) GetInfo() (*UserProfile, error) {
 	resp, err := httpGet(i.Url("user/info"))
 	if err != nil {
@@ -244,30 +291,16 @@ func (i *UserIndex) GetInfo() (*UserProfile, error) {
 }
 
 func (i *UserIndex) PostInfo(p *UserProfile) error {
-	r, err := Marshal(p)
-	if err != nil {
-		return err
-	}
-
-	resp, err := httpPost(i.Url("user/info"), "application/yaml", r)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	return nil
+	return i.post("user/info", p)
 }
 
-func (i *UserIndex) postPass(url string, pass string) error {
-
-	// additional hashing of the password before sending.
-	// this resulting `passhash` is really the user's password.
-	// this is so that passwords are never seen by the server as plaintext
-	passhash, err := stringHash(pass + i.User)
+func (i *UserIndex) post(url string, body interface{}) error {
+	r, err := Marshal(body)
 	if err != nil {
 		return err
 	}
 
-	resp, err := httpPost(i.Url(url), "text", strings.NewReader(passhash))
+	resp, err := httpPost(i.Url(url), "application/yaml", r)
 	if err != nil {
 		return err
 	}
@@ -276,20 +309,36 @@ func (i *UserIndex) postPass(url string, pass string) error {
 	return nil
 }
 
-func (i *UserIndex) Pass(pass string) error {
-	if len(pass) < 8 {
-		return fmt.Errorf("data user: password too short. 8 character min.")
+func (i *UserIndex) Pass(cp string, np string) error {
+	cph, err := i.Passhash(cp)
+	if err != nil {
+		return err
 	}
 
-	return i.postPass("user/pass", pass)
+	nph, err := i.Passhash(np)
+	if err != nil {
+		return err
+	}
+
+	return i.post("user/pass", &NewPassMsg{cph, nph})
 }
 
 func (i *UserIndex) Auth(pass string) error {
-	return i.postPass("user/auth", pass)
+	ph, err := i.Passhash(pass)
+	if err != nil {
+		return err
+	}
+
+	return i.post("user/auth", ph)
 }
 
 func (i *UserIndex) Add(pass string, email string) error {
-	err := i.postPass("user/add/"+email, pass)
+	ph, err := i.Passhash(pass)
+	if err != nil {
+		return err
+	}
+
+	err = i.post("user/add", &NewUserMsg{ph, email})
 	if err != nil {
 		if strings.Contains(err.Error(), "user exists") {
 			m := "Error: username '%s' already in use. Try another."
@@ -305,4 +354,14 @@ func (d *DataIndex) UserIndex(user string) *UserIndex {
 		User:    user,
 		BaseUrl: d.Url,
 	}
+}
+
+type NewUserMsg struct {
+	Pass  string
+	Email string
+}
+
+type NewPassMsg struct {
+	Current string
+	New     string
 }
