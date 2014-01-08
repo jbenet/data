@@ -378,7 +378,11 @@ func (p *Pack) Publish(force bool) error {
 		if strings.Contains(err.Error(), "connection refused") {
 			return fmt.Errorf(NetErrMsg, p.index.Url)
 		}
-		return err
+
+		// ok if not found.
+		if !strings.Contains(err.Error(), "HTTP error status code: 404") {
+			return err
+		}
 	}
 
 	if ref != "" {
