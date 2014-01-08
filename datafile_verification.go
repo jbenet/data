@@ -82,7 +82,52 @@ func fillOutDatafileField(prompt string, field *string) error {
 	}
 
 	dOut("entered: %s\n", *field)
+	return nil
+}
 
+func fillOutUserProfile(p *UserProfile) error {
+	pOut("Editing user profile. [Current value].\n")
+
+	fields := map[string]*string{
+		"Full Name (required)":        &p.Name,
+		"Email (required)":            &p.Email,
+		"Homepage Url (optional)":     &p.Homepage,
+		"Github username (optional)":  &p.Github,
+		"Twitter username (optional)": &p.Twitter,
+	}
+
+	for p, f := range fields {
+		err := fillOutUserProfileField(p, f)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func fillOutUserProfileField(prompt string, field *string) error {
+	first := true
+	for len(*field) < 1 || first {
+		first = false
+
+		pOut("%s: [%s] ", *field, prompt)
+		line, err := readInput()
+		if err != nil {
+			return err
+		}
+
+		if len(line) > 0 {
+			*field = line
+		}
+
+		// if not required, don't loop
+		if !strings.Contains(prompt, "required") {
+			break
+		}
+	}
+
+	dOut("entered: %s\n", *field)
 	return nil
 }
 

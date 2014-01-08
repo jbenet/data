@@ -18,5 +18,6 @@ var Cmd_data = &commander.Command{
 		cmd_data_pack,
 		cmd_data_blob,
 		cmd_data_publish,
+		cmd_data_user,
 	},
 }

@@ -68,6 +68,18 @@ func readerHash(r io.Reader) (string, error) {
 	return hex, nil
 }
 
+func stringHash(s string) (string, error) {
+	r := strings.NewReader(s)
+	h := sha1.New()
+	_, err := r.WriteTo(h)
+	if err != nil {
+		return "", err
+	}
+
+	hex := fmt.Sprintf("%x", h.Sum(nil))
+	return hex, nil
+}
+
 func copyFile(src string, dst string) error {
 	cmd := exec.Command("cp", src, dst)
 	return cmd.Run()

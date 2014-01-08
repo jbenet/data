@@ -5,8 +5,10 @@
 
 Publishing + downloading packages.
 
+- data pack publish
 - data publish
-- data get
+- data get (new)
+- data user
 
 ## v0.0.4 2014-01-03
 
