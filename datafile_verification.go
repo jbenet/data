@@ -1,7 +1,6 @@
 package data
 
 import (
-	"bufio"
 	"os"
 	"strings"
 )
@@ -129,13 +128,4 @@ func fillOutUserProfileField(prompt string, field *string) error {
 
 	dOut("entered: %s\n", *field)
 	return nil
-}
-
-func readInput() (string, error) {
-	reader := bufio.NewReader(os.Stdin)
-	line, _, err := reader.ReadLine()
-	if err != nil {
-		return "", err
-	}
-	return string(line), nil
 }

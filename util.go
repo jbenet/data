@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"crypto/sha1"
 	"fmt"
+	"github.com/dotcloud/docker/pkg/term"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -249,4 +250,26 @@ func extractArchive(filename string) error {
 	}
 
 	return nil
+}
+
+// Input
+func readInput() (string, error) {
+	reader := bufio.NewReader(os.Stdin)
+	line, _, err := reader.ReadLine()
+	if err != nil {
+		return "", err
+	}
+	return string(line), nil
+}
+
+func readInputSilent() (string, error) {
+	fd := os.Stdin.Fd()
+	s, _ := term.SaveState(fd)
+	term.DisableEcho(fd, s)
+
+	input, err := readInput()
+	term.RestoreTerminal(fd, s)
+
+	pOut("\n")
+	return input, err
 }
