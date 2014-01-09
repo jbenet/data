@@ -180,13 +180,7 @@ func packMakeCmd(c *commander.Command, args []string) error {
 		return err
 	}
 
-	if c.Flag.Lookup("clean").Value.Get().(bool) {
-		err := p.manifest.Clear()
-		if err != nil {
-			return err
-		}
-	}
-	return p.GenerateFiles()
+	return p.Make(c.Flag.Lookup("clean").Value.Get().(bool))
 }
 
 func packManifestCmd(c *commander.Command, args []string) error {
@@ -209,17 +203,7 @@ func packUploadCmd(c *commander.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-
-	if !p.manifest.Complete() {
-		return fmt.Errorf(ManifestIncompleteMsg)
-	}
-
-	hashes, err := p.BlobHashes()
-	if err != nil {
-		return err
-	}
-
-	return putBlobs(hashes)
+	return p.Upload()
 }
 
 func packDownloadCmd(c *commander.Command, args []string) error {
@@ -227,16 +211,7 @@ func packDownloadCmd(c *commander.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	if !p.manifest.Complete() {
-		return fmt.Errorf(`Manifest incomplete. Get new manifest copy.`)
-	}
-
-	hashes, err := p.BlobHashes()
-	if err != nil {
-		return err
-	}
-
-	return getBlobs(hashes)
+	return p.Download()
 }
 
 func packPublishCmd(c *commander.Command, args []string) error {
@@ -323,7 +298,13 @@ func (p *Pack) BlobHashes() ([]string, error) {
 	return hashes, nil
 }
 
-func (p *Pack) GenerateFiles() error {
+func (p *Pack) Make(clean bool) error {
+	if clean {
+		err := p.manifest.Clear()
+		if err != nil {
+			return err
+		}
+	}
 
 	// ensure the dataset has required information
 	err := fillOutDatafileInPath(p.datafile.Path)
@@ -360,6 +341,34 @@ func (p *Pack) blobsToUpload() ([]string, error) {
 		}
 	}
 	return missing, nil
+}
+
+// Uploads pack to index.
+func (p *Pack) Upload() error {
+	if !p.manifest.Complete() {
+		return fmt.Errorf(ManifestIncompleteMsg)
+	}
+
+	hashes, err := p.BlobHashes()
+	if err != nil {
+		return err
+	}
+
+	return putBlobs(hashes)
+}
+
+// Downloads pack from index.
+func (p *Pack) Download() error {
+	if !p.manifest.Complete() {
+		return fmt.Errorf(`Manifest incomplete. Get new manifest copy.`)
+	}
+
+	hashes, err := p.BlobHashes()
+	if err != nil {
+		return err
+	}
+
+	return getBlobs(hashes)
 }
 
 // Publishes pack to the Index
