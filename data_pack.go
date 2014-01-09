@@ -376,7 +376,7 @@ func (p *Pack) Publish(force bool) error {
 	ref, err := ri.VersionRef(h.Version)
 	if err != nil {
 		if strings.Contains(err.Error(), "connection refused") {
-			return fmt.Errorf(NetErrMsg, p.index.Url)
+			return fmt.Errorf(NetErrMsg, p.index.Http.Url)
 		}
 
 		// ok if not found.

@@ -5,7 +5,6 @@ import (
 	"github.com/jbenet/commander"
 	"io"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"strings"
 )
@@ -133,7 +132,7 @@ func userCmdUserIndex(args []string) (*UserIndex, error) {
 		return nil, err
 	}
 
-	ui := di.UserIndex(user)
+	ui := di.NewUserIndex(user)
 	return ui, nil
 }
 
@@ -253,7 +252,7 @@ func userUrlCmd(c *commander.Command, args []string) error {
 		return err
 	}
 
-	pOut("%s\n", ui.Url(""))
+	pOut("%s\n", ui.Http.Url)
 	return nil
 }
 
@@ -298,13 +297,9 @@ type UserProfile struct {
 }
 
 type UserIndex struct {
-	User    string
-	BaseUrl string
-	Refs    *DatasetRefs
-}
-
-func (i UserIndex) Url(url string) string {
-	return i.BaseUrl + "/" + i.User + "/" + url
+	Http *HttpClient
+	User string
+	Refs *DatasetRefs
 }
 
 func (i UserIndex) Passhash(pass string) (string, error) {
@@ -315,7 +310,7 @@ func (i UserIndex) Passhash(pass string) (string, error) {
 }
 
 func (i *UserIndex) GetInfo() (*UserProfile, error) {
-	resp, err := httpGet(i.Url("user/info"))
+	resp, err := i.Http.Get("info")
 	if err != nil {
 		return nil, err
 	}
@@ -331,17 +326,8 @@ func (i *UserIndex) GetInfo() (*UserProfile, error) {
 }
 
 func (i *UserIndex) PostInfo(p *UserProfile) error {
-	_, err := i.post("user/info", p)
+	_, err := i.Http.Post("info", p)
 	return err
-}
-
-func (i *UserIndex) post(url string, body interface{}) (*http.Response, error) {
-	r, err := Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-
-	return httpPost(i.Url(url), "application/yaml", r)
 }
 
 func (i *UserIndex) Auth(pass string) error {
@@ -350,7 +336,7 @@ func (i *UserIndex) Auth(pass string) error {
 		return err
 	}
 
-	resp, err := i.post("user/auth", ph)
+	resp, err := i.Http.Post("auth", ph)
 	if err != nil {
 		return err
 	}
@@ -387,7 +373,7 @@ func (i *UserIndex) Pass(cp string, np string) error {
 		return err
 	}
 
-	_, err = i.post("user/pass", &NewPassMsg{cph, nph})
+	_, err = i.Http.Post("pass", &NewPassMsg{cph, nph})
 	return err
 }
 
@@ -397,7 +383,7 @@ func (i *UserIndex) Add(pass string, email string) error {
 		return err
 	}
 
-	_, err = i.post("user/add", &NewUserMsg{ph, email})
+	_, err = i.Http.Post("add", &NewUserMsg{ph, email})
 	if err != nil {
 		if strings.Contains(err.Error(), "user exists") {
 			m := "Error: username '%s' already in use. Try another."
@@ -408,10 +394,14 @@ func (i *UserIndex) Add(pass string, email string) error {
 }
 
 // DataIndex extension to generate a UserIndex
-func (d *DataIndex) UserIndex(user string) *UserIndex {
+func (d *DataIndex) NewUserIndex(user string) *UserIndex {
 	return &UserIndex{
-		User:    user,
-		BaseUrl: d.Url,
+		Http: &HttpClient{
+			Url:       d.Http.Url + "/" + user + "/" + "user",
+			User:      d.Http.User,
+			AuthToken: d.Http.AuthToken,
+		},
+		User: user,
 	}
 }
 

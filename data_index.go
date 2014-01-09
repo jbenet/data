@@ -2,10 +2,15 @@ package data
 
 import (
 	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"path"
+	"strings"
 )
 
 type DataIndex struct {
-	Url       string
+	Http      *HttpClient
 	BlobStore blobStore
 }
 
@@ -16,7 +21,7 @@ func (i *DataIndex) ArchiveUrl(h *Handle) string {
 	if len(h.Version) > 0 {
 		ref = h.Version
 	}
-	return fmt.Sprintf("%s/%s/archive/%s%s", i.Url, h.Path(), ref, ArchiveSuffix)
+	return i.Http.SubUrl(path.Join(h.Path(), "archive", ref, ArchiveSuffix))
 }
 
 // why not use `func init()`? some commands don't need an index
@@ -31,7 +36,94 @@ func NewMainDataIndex() (*DataIndex, error) {
 		return nil, err
 	}
 
-	mainDataIndex := &DataIndex{Url: "http://datadex.io:8080"}
+	h, err := NewHttpClient()
+	if err != nil {
+		return nil, err
+	}
+
+	mainDataIndex := &DataIndex{Http: h}
 	mainDataIndex.BlobStore = blobStore
 	return mainDataIndex, nil
+}
+
+const HttpHeaderAuthToken = "X-Data-Token"
+const HttpHeaderContentType = "Content-Type"
+const HttpHeaderContentTypeYaml = "application/yaml"
+
+// Controls authenticated http accesses.
+type HttpClient struct {
+	Url       string
+	User      string
+	AuthToken string
+}
+
+func NewHttpClient() (*HttpClient, error) {
+	i, exists := Config.Index["datadex"]
+	if !exists {
+		return nil, fmt.Errorf("Config error: no datadex index.")
+	}
+
+	h := &HttpClient{
+		Url:       i.Url,
+		User:      i.User,
+		AuthToken: i.Token,
+	}
+
+	return h, nil
+}
+
+func (h HttpClient) SubUrl(path string) string {
+	return h.Url + "/" + path
+}
+
+func (h *HttpClient) Get(path string) (*http.Response, error) {
+	dOut("http index get %s\n", h.SubUrl(path))
+
+	req, err := http.NewRequest("GET", h.SubUrl(path), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add(HttpHeaderAuthToken, h.AuthToken)
+	return h.DoRequest(req)
+}
+
+func (h *HttpClient) Post(path string, body interface{}) (*http.Response, error) {
+	dOut("http index post %s\n", h.SubUrl(path))
+
+	rdr := io.Reader(nil)
+	var err error
+	if body != nil {
+		rdr, err = Marshal(body)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	req, err := http.NewRequest("POST", h.SubUrl(path), rdr)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add(HttpHeaderContentType, HttpHeaderContentTypeYaml)
+	req.Header.Add(HttpHeaderAuthToken, h.AuthToken)
+	return h.DoRequest(req)
+}
+
+func (h *HttpClient) DoRequest(req *http.Request) (*http.Response, error) {
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	c := resp.StatusCode
+	if 200 <= c && c < 400 {
+		return resp, nil
+	}
+
+	e, _ := ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+
+	s := strings.TrimSpace(string(e[:]))
+	return nil, fmt.Errorf("HTTP error status code: %d (%s)", c, s)
 }

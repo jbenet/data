@@ -1,7 +1,7 @@
 package data
 
 import (
-	"strings"
+	"io/ioutil"
 )
 
 // serializable into YAML
@@ -16,13 +16,9 @@ type DatasetRefs struct {
 }
 
 type HttpRefIndex struct {
+	Http    *HttpClient
 	Dataset string
-	BaseUrl string
 	Refs    *DatasetRefs
-}
-
-func (h HttpRefIndex) Url(url string) string {
-	return h.BaseUrl + "/" + h.Dataset + "/refs/" + url
 }
 
 func (h *HttpRefIndex) FetchRefs(refresh bool) error {
@@ -31,7 +27,7 @@ func (h *HttpRefIndex) FetchRefs(refresh bool) error {
 		return nil
 	}
 
-	resp, err := httpGet(h.Url(""))
+	resp, err := h.Http.Get("")
 	if err != nil {
 		return err
 	}
@@ -49,11 +45,17 @@ func (h *HttpRefIndex) FetchRefs(refresh bool) error {
 }
 
 func (h *HttpRefIndex) Has(ref string) (bool, error) {
-	return httpExists(h.Url(ref))
+	return httpExists(h.Http.SubUrl(ref))
 }
 
 func (h *HttpRefIndex) Get(ref string) (string, error) {
-	buf, err := httpReadAll(h.Url(ref))
+	resp, err := h.Http.Get(ref)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	buf, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
 	}
@@ -62,7 +64,7 @@ func (h *HttpRefIndex) Get(ref string) (string, error) {
 }
 
 func (h *HttpRefIndex) Put(ref string) error {
-	resp, err := httpPost(h.Url(ref), "text", strings.NewReader(""))
+	resp, err := h.Http.Post(ref, nil)
 	if err != nil {
 		return err
 	}
@@ -93,8 +95,13 @@ func (h *HttpRefIndex) RefTimestamp(ref string) (string, error) {
 
 // DataIndex extension to generate a RefIndex
 func (d *DataIndex) RefIndex(dataset string) *HttpRefIndex {
-	return &HttpRefIndex{
+	ri := &HttpRefIndex{
+		Http: &HttpClient{
+			Url:       d.Http.Url + "/" + dataset + "/" + "refs",
+			User:      d.Http.User,
+			AuthToken: d.Http.AuthToken,
+		},
 		Dataset: dataset,
-		BaseUrl: d.Url,
 	}
+	return ri
 }
