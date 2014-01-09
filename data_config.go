@@ -64,7 +64,11 @@ func configCmd(c *commander.Command, args []string) error {
 		return nil
 	}
 
-	return configSet(&Config, args[0], args[1])
+	if err := configSet(&Config, args[0], args[1]); err != nil {
+		return err
+	}
+
+	return WriteConfigFile(globalConfigFile, &Config)
 }
 
 func printConfig(c *ConfigFormat) error {
@@ -74,11 +78,58 @@ func printConfig(c *ConfigFormat) error {
 }
 
 func configGet(c *ConfigFormat, key string) (string, error) {
-	return "", NotImplementedError
+	// struct -> map for dynamic walking
+	m := map[interface{}]interface{}{}
+	err := MarshalUnmarshal(c, &m)
+	if err != nil {
+		return "", fmt.Errorf("error serializing config: %s", err)
+	}
+
+	var cursor interface{}
+	var exists bool
+	cursor = m
+	for _, part := range strings.Split(key, ".") {
+		cursor, exists = cursor.(map[interface{}]interface{})[part]
+		if !exists {
+			return "", fmt.Errorf("") // empty error prints out nothing.
+		}
+	}
+
+	return fmt.Sprintf("%s", cursor), nil
 }
 
 func configSet(c *ConfigFormat, key string, value string) error {
-	return NotImplementedError
+	// struct -> map for dynamic walking
+	m := map[interface{}]interface{}{}
+	if err := MarshalUnmarshal(c, &m); err != nil {
+		return fmt.Errorf("error serializing config: %s", err)
+	}
+
+	var cursor interface{}
+	var exists bool
+	cursor = m
+
+	parts := strings.Split(key, ".")
+	for n, part := range parts {
+		mcursor := cursor.(map[interface{}]interface{})
+		// last part, set here.
+		if n == (len(parts) - 1) {
+			mcursor[part] = value
+			break
+		}
+
+		cursor, exists = mcursor[part]
+		if !exists { // create map if not here.
+			mcursor[part] = map[interface{}]interface{}{}
+			cursor = mcursor[part]
+		}
+	}
+
+	// write back.
+	if err := MarshalUnmarshal(&m, c); err != nil {
+		return fmt.Errorf("error serializing config: %s", err)
+	}
+	return nil
 }
 
 var globalConfigFile = "~/.dataconfig"
