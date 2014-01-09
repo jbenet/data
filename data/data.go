@@ -14,7 +14,9 @@ import (
 func main() {
 	err := data.Cmd_data.Dispatch(os.Args[1:])
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
+		if len(err.Error()) > 0 {
+			fmt.Fprintf(os.Stderr, "%v\n", err)
+		}
 		os.Exit(1)
 	}
 	return
