@@ -5,7 +5,6 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"path"
 	"strings"
 )
 
@@ -17,14 +16,6 @@ type DataIndex struct {
 var mainDataIndex *DataIndex
 
 const mainIndexName = "datadex"
-
-func (i *DataIndex) ArchiveUrl(h *Handle) string {
-	ref := "master"
-	if len(h.Version) > 0 {
-		ref = h.Version
-	}
-	return i.Http.SubUrl(path.Join(h.Path(), "archive", ref, ArchiveSuffix))
-}
 
 // why not use `func init()`? some commands don't need an index
 // is annoying to error out on an S3 key when S3 isn't needed.
