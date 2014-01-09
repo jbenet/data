@@ -1,14 +1,15 @@
 # data changelog
 
 
-## v0.0.5 2014-01-
+## v0.0.5 2014-01-09
 
 Publishing + downloading packages.
 
 - data pack publish
 - data publish
-- data get (new)
-- data user
+- data get (using pack)
+- data user {add, auth, pass, info, url}
+- data config
 
 ## v0.0.4 2014-01-03
 

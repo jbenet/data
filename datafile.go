@@ -5,19 +5,18 @@ import (
 )
 
 /*
-  Datafile format
+  # Datafile format
+  # A YAML (inc json) doc with the following keys:
 
-  A YAML (inc json) doc with the following keys:
-
-  (required:)
+  # required
   handle: <author>/<name>[.<format>][@<tag>]
   title: Dataset Title
 
-  (optional functionality:)
+  # optional functionality
   dependencies: [<other dataset handles>]
   formats: {<format> : <format url>}
 
-  (optional information:)
+  # optional information
   description: Text describing dataset.
   repository: <repo url>
   homepage: <dataset url>

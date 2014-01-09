@@ -23,6 +23,7 @@ data - dataset package manager
 Commands:
 
     version     Show data version information.
+    config      Manage data configuration.
     info        Show dataset information.
     list        List installed datasets.
     get         Download and install dataset.
@@ -30,6 +31,7 @@ Commands:
     pack        Dataset packaging, upload, and download.
     blob        Manage blobs in the blobstore.
     publish     Guided dataset publishing.
+    user        Manage users and credentials.
 
 Use "data help <command>" for more information about a command.
 ```
@@ -38,33 +40,36 @@ Use "data help <command>" for more information about a command.
 
 ```
 # author/dataset
-> data get foo/bar
-Downloading archive at http://datadex.io/foo/bar/archive/master.tar.gz
-foo/bar@1.1 downloaded
-foo/bar@1.1 installed
+> data get jbenet/bar
+Downloading jbenet/foo from datadex.
+get blob b53ce99 Manifest
+get blob 2183ea8 Datafile
+get blob 63443e4 data.csv
+copy blob 63443e4 data.txt
+copy blob 63443e4 data.xsl
+get blob b53ce99 Manifest
 
-# url
-> data get http://datadex.io/foo/bar/archive/master.tar.gz
-Downloading archive at http://datadex.io/foo/bar/archive/master.tar.gz
-foo/bar@1.1 downloaded
-foo/bar@1.1 installed
+Installed jbenet/foo@1.0 at datasets/jbenet/foo
 ```
 
 ### data list
 
 ```
 > data list
-    foo/bar@1.1
+jbenet/bar@1.0
 ```
 
 ### data info
 
 ```
-> data info foo/bar
-dataset: foo/bar@1.1
+> data info jbenet/foo
+dataset: jbenet/foo@1.0
+title: Foo Dataset
+description: The first dataset to use data.
+license: MIT
 
 # shows the Datafile
-> cat datasets/foo/bar/Datafile
+> cat datasets/jbenet/bar/Datafile
 dataset: foo/bar@1.1
 ```
 
@@ -77,17 +82,93 @@ dataset: foo/bar@1.1
 ==> Step 1/3: Creating the package.
 Verifying Datafile fields...
 Generating manifest...
+data manifest: added Datafile
+data manifest: added data.csv
+data manifest: added data.txt
+data manifest: added data.xsl
+data manifest: hashed 2183ea8 Datafile
+data manifest: hashed 63443e4 data.csv
+data manifest: hashed 63443e4 data.txt
+data manifest: hashed 63443e4 data.xsl
 
 ==> Step 2/3: Uploading the package contents.
-put blob 0d0c669 Datafile
-put blob 63443e4 data.csv
-put blob 8a2e6f6 Manifest
+put blob 2183ea8 Datafile - uploading
+put blob 63443e4 data.csv - exists
+put blob b53ce99 Manifest - uploading
 
 ==> Step 3/3: Publishing the package to the index.
-data pack: published foo/bar@1.1 (8a2e6f6).
+data pack: published jbenet/foo@1.0 (b53ce99).
 ```
 
 Et voila! You can now use `data get foo/bar` to retrieve it!
+
+### data config
+
+```
+> data config index.datadex.url http://localhost:8080
+> data config index.datadex.url
+http://localhost:8080
+```
+
+### data user
+
+```
+> data user
+data user - Manage users and credentials.
+
+Commands:
+
+    add         Register new user with index.
+    auth        Authenticate user account.
+    pass        Change user password.
+    info        Show (or edit) public user information.
+    url         Output user profile url.
+
+Use "user help <command>" for more information about a command.
+
+> data user add
+Username: juan
+Password (6 char min):
+Email (for security): juan@benet.ai
+juan registered.
+
+> data user auth
+Username: juan
+Password:
+Authenticated as juan.
+
+> data user info
+name: ""
+email: juan@benet.ai
+
+> data user info jbenet
+name: Juan
+email: juan@benet.ai
+github: jbenet
+twitter: '@jbenet'
+homepage: benet.ai
+
+> data user info --edit
+Editing user profile. [Current value].
+Full Name: [] Juan Batiz-Benet
+Homepage Url: []
+Github username: []
+Twitter username: []
+Profile saved.
+
+> data user info
+name: Juan Batiz-Benet
+email: juan@benet.ai
+
+> data user pass
+Username: juan
+Current Password:
+New Password (6 char min):
+Password changed. You will receive an email notification.
+
+> data user url
+http://datadex.io:8080/juan
+```
 
 ### data manifest (plumbing)
 
@@ -141,6 +222,8 @@ http://datadex.archives.s3.amazonaws.com/blob/63443e4d74c3a170499fa9cfde5ae22240
 ```
 
 ### data pack (plumbing)
+
+This is probably the most informative command to look at.
 
 ```
 data pack - Dataset packaging, upload, and download.
@@ -236,19 +319,18 @@ In a way, your project defines a dataset made up of other datasets, like
 `package.json` in `npm`.
 
 ```
-Datafile format
+# Datafile format
+# A YAML (inc json) doc with the following keys:
 
-A YAML (inc json) doc with the following keys:
-
-(required:)
+# required
 handle: <author>/<name>[.<format>][@<tag>]
 title: Dataset Title
 
-(optional functionality:)
+# optional functionality
 dependencies: [<other dataset handles>]
 formats: {<format> : <format url>}
 
-(optional information:)
+# optional information
 description: Text describing dataset.
 repository: <repo url>
 homepage: <dataset url>
@@ -299,13 +381,13 @@ And, since YAML is a superset of json, you can do whatever you want.
 Setup:
 
 1. [install go](http://golang.org/doc/install)
-2. run `go build`
+2. Run
 
-Build and install:
-
-    make
+    git clone https://github.com/jbenet/data
+    cd data
     make install
 
+You'll want to run [datadex](https://github.com/jbenet/datadex) too.
 
 ## About
 
