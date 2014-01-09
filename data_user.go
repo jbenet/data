@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/jbenet/commander"
 	"io"
+	"io/ioutil"
+	"net/http"
 	"os"
 	"strings"
 )
@@ -20,17 +22,21 @@ var cmd_data_user = &commander.Command{
     Commands:
 
       add [<username>]   Register new user with index.
-      auth <username>    Re-authenticate as user.
+      auth [<username>]  Authenticate user account.
       pass [<username>]  Change user password.
       info [<username>]  Show (or edit) public user information.
       url [<username>]   Output user profile url.
 
+    If no argument is provided, data will ask for the username.
+
     User accounts are needed in order to publish dataset packages to the
     dataset index. Packages are listed under their owner's username:
     '<owner>/<dataset>'.
+
   `,
 	Subcommands: []*commander.Command{
 		cmd_data_user_add,
+		cmd_data_user_auth,
 		cmd_data_user_pass,
 		cmd_data_user_info,
 		cmd_data_user_url,
@@ -47,6 +53,19 @@ var cmd_data_user_add = &commander.Command{
     See data user.
   `,
 	Run: userAddCmd,
+}
+
+var cmd_data_user_auth = &commander.Command{
+	UsageLine: "auth [<username>]",
+	Short:     "Authenticate user account.",
+	Long: `data user auth - Authenticate user account.
+
+    Authenticate (login) user account to index. An auth token is retrieved
+    and stored in the local config file.
+
+    See data user.
+  `,
+	Run: userAuthCmd,
 }
 
 var cmd_data_user_pass = &commander.Command{
@@ -140,6 +159,27 @@ func userAddCmd(c *commander.Command, args []string) error {
 	}
 
 	pOut("%s registered.\n", ui.User)
+	return nil
+}
+
+func userAuthCmd(c *commander.Command, args []string) error {
+	ui, err := userCmdUserIndex(args)
+	if err != nil {
+		return err
+	}
+
+	pOut("Password: ")
+	pass, err := readInputSilent()
+	if err != nil {
+		return err
+	}
+
+	err = ui.Auth(pass)
+	if err != nil {
+		return err
+	}
+
+	pOut("Authenticated as %s.\n", ui.User)
 	return nil
 }
 
@@ -291,21 +331,48 @@ func (i *UserIndex) GetInfo() (*UserProfile, error) {
 }
 
 func (i *UserIndex) PostInfo(p *UserProfile) error {
-	return i.post("user/info", p)
+	_, err := i.post("user/info", p)
+	return err
 }
 
-func (i *UserIndex) post(url string, body interface{}) error {
+func (i *UserIndex) post(url string, body interface{}) (*http.Response, error) {
 	r, err := Marshal(body)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	resp, err := httpPost(i.Url(url), "application/yaml", r)
+	return httpPost(i.Url(url), "application/yaml", r)
+}
+
+func (i *UserIndex) Auth(pass string) error {
+	ph, err := i.Passhash(pass)
 	if err != nil {
 		return err
 	}
 
-	resp.Body.Close()
+	resp, err := i.post("user/auth", ph)
+	if err != nil {
+		return err
+	}
+
+	buf, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("Error reading token. %s", err)
+	}
+
+	token := string(buf[:])
+	if !IsHash(token) {
+		return fmt.Errorf("Invalid token received %s", token)
+	}
+
+	if err := configSet("index.datadex.user", i.User); err != nil {
+		return fmt.Errorf("Error setting user. %s", err)
+	}
+
+	if err := configSet("index.datadex.token", token); err != nil {
+		return fmt.Errorf("Error setting token. %s", err)
+	}
+
 	return nil
 }
 
@@ -320,16 +387,8 @@ func (i *UserIndex) Pass(cp string, np string) error {
 		return err
 	}
 
-	return i.post("user/pass", &NewPassMsg{cph, nph})
-}
-
-func (i *UserIndex) Auth(pass string) error {
-	ph, err := i.Passhash(pass)
-	if err != nil {
-		return err
-	}
-
-	return i.post("user/auth", ph)
+	_, err = i.post("user/pass", &NewPassMsg{cph, nph})
+	return err
 }
 
 func (i *UserIndex) Add(pass string, email string) error {
@@ -338,7 +397,7 @@ func (i *UserIndex) Add(pass string, email string) error {
 		return err
 	}
 
-	err = i.post("user/add", &NewUserMsg{ph, email})
+	_, err = i.post("user/add", &NewUserMsg{ph, email})
 	if err != nil {
 		if strings.Contains(err.Error(), "user exists") {
 			m := "Error: username '%s' already in use. Try another."
