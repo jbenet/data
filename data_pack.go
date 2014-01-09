@@ -2,6 +2,7 @@ package data
 
 import (
 	"fmt"
+	"github.com/gonuts/flag"
 	"github.com/jbenet/commander"
 	"strings"
 )
@@ -89,7 +90,8 @@ var cmd_data_pack_make = &commander.Command{
 
     See 'data pack'.
   `,
-	Run: packMakeCmd,
+	Run:  packMakeCmd,
+	Flag: *flag.NewFlagSet("data-pack-make", flag.ExitOnError),
 }
 
 var cmd_data_pack_manifest = &commander.Command{
@@ -168,12 +170,22 @@ var cmd_data_pack_check = &commander.Command{
 	Run: packCheckCmd,
 }
 
+func init() {
+	cmd_data_pack_make.Flag.Bool("clean", false, "make pack from scratch")
+}
+
 func packMakeCmd(c *commander.Command, args []string) error {
 	p, err := NewPack()
 	if err != nil {
 		return err
 	}
 
+	if c.Flag.Lookup("clean").Value.Get().(bool) {
+		err := p.manifest.Clear()
+		if err != nil {
+			return err
+		}
+	}
 	return p.GenerateFiles()
 }
 
