@@ -47,7 +47,7 @@ func init() {
 
 func configCmd(c *commander.Command, args []string) error {
 	if c.Flag.Lookup("show").Value.Get().(bool) {
-		return printConfig(&Config)
+		return printConfig(Config)
 	}
 
 	if len(args) == 0 {
@@ -55,7 +55,7 @@ func configCmd(c *commander.Command, args []string) error {
 	}
 
 	if len(args) == 1 {
-		value, err := configGet(&Config, args[0])
+		value, err := configGet(args[0])
 		if err != nil {
 			return err
 		}
@@ -64,11 +64,7 @@ func configCmd(c *commander.Command, args []string) error {
 		return nil
 	}
 
-	if err := configSet(&Config, args[0], args[1]); err != nil {
-		return err
-	}
-
-	return WriteConfigFile(globalConfigFile, &Config)
+	return configSet(args[0], args[1])
 }
 
 func printConfig(c *ConfigFormat) error {
@@ -77,10 +73,10 @@ func printConfig(c *ConfigFormat) error {
 	return f.Write(os.Stdout)
 }
 
-func configGet(c *ConfigFormat, key string) (string, error) {
+func configGet(key string) (string, error) {
 	// struct -> map for dynamic walking
 	m := map[interface{}]interface{}{}
-	err := MarshalUnmarshal(c, &m)
+	err := MarshalUnmarshal(Config, &m)
 	if err != nil {
 		return "", fmt.Errorf("error serializing config: %s", err)
 	}
@@ -98,10 +94,10 @@ func configGet(c *ConfigFormat, key string) (string, error) {
 	return fmt.Sprintf("%s", cursor), nil
 }
 
-func configSet(c *ConfigFormat, key string, value string) error {
+func configSet(key string, value string) error {
 	// struct -> map for dynamic walking
 	m := map[interface{}]interface{}{}
-	if err := MarshalUnmarshal(c, &m); err != nil {
+	if err := MarshalUnmarshal(Config, &m); err != nil {
 		return fmt.Errorf("error serializing config: %s", err)
 	}
 
@@ -126,10 +122,11 @@ func configSet(c *ConfigFormat, key string, value string) error {
 	}
 
 	// write back.
-	if err := MarshalUnmarshal(&m, c); err != nil {
+	if err := MarshalUnmarshal(&m, Config); err != nil {
 		return fmt.Errorf("error serializing config: %s", err)
 	}
-	return nil
+
+	return WriteConfigFile(globalConfigFile, Config)
 }
 
 var globalConfigFile = "~/.dataconfig"
@@ -143,7 +140,7 @@ type ConfigFormat struct {
 	}
 }
 
-var Config ConfigFormat
+var Config = &ConfigFormat{}
 
 // var DefaultConfigText = `[index "datadex.io:8080"]
 // user =
@@ -177,7 +174,7 @@ func init() {
 	}
 
 	// load config
-	err = ReadConfigFile(globalConfigFile, &Config)
+	err = ReadConfigFile(globalConfigFile, Config)
 	if err != nil {
 		panic("error: failed to load config " + globalConfigFile +
 			". " + err.Error())
