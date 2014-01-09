@@ -46,7 +46,8 @@ func NewMainDataIndex() (*DataIndex, error) {
 	return mainDataIndex, nil
 }
 
-const HttpHeaderAuthToken = "X-Data-Token"
+const HttpHeaderUser = "X-Data-User"
+const HttpHeaderToken = "X-Data-Token"
 const HttpHeaderContentType = "Content-Type"
 const HttpHeaderContentTypeYaml = "application/yaml"
 
@@ -84,7 +85,8 @@ func (h *HttpClient) Get(path string) (*http.Response, error) {
 		return nil, err
 	}
 
-	req.Header.Add(HttpHeaderAuthToken, h.AuthToken)
+	req.Header.Add(HttpHeaderToken, h.AuthToken)
+	req.Header.Add(HttpHeaderUser, h.User)
 	return h.DoRequest(req)
 }
 
@@ -106,7 +108,8 @@ func (h *HttpClient) Post(path string, body interface{}) (*http.Response, error)
 	}
 
 	req.Header.Add(HttpHeaderContentType, HttpHeaderContentTypeYaml)
-	req.Header.Add(HttpHeaderAuthToken, h.AuthToken)
+	req.Header.Add(HttpHeaderToken, h.AuthToken)
+	req.Header.Add(HttpHeaderUser, h.User)
 	return h.DoRequest(req)
 }
 
