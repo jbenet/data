@@ -85,6 +85,7 @@ var globalConfigFile = "~/.dataconfig"
 
 type ConfigFormat struct {
 	Index map[string]*struct {
+		Url      string
 		User     string
 		Token    string
 		Disabled bool ",omitempty"
@@ -98,7 +99,8 @@ var Config ConfigFormat
 // token =
 // `
 var DefaultConfigText = `index:
-  "datadex.io:8080":
+  datadex:
+    url: http://datadex.io:8080
     user: ""
     token: ""
 `
