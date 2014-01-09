@@ -16,6 +16,8 @@ type DataIndex struct {
 
 var mainDataIndex *DataIndex
 
+const mainIndexName = "datadex"
+
 func (i *DataIndex) ArchiveUrl(h *Handle) string {
 	ref := "master"
 	if len(h.Version) > 0 {
@@ -59,7 +61,7 @@ type HttpClient struct {
 }
 
 func NewHttpClient() (*HttpClient, error) {
-	i, exists := Config.Index["datadex"]
+	i, exists := Config.Index[mainIndexName]
 	if !exists {
 		return nil, fmt.Errorf("Config error: no datadex index.")
 	}

@@ -232,8 +232,8 @@ func NewConfigfile(path string) (*Configfile, error) {
 
 // nice helpers
 func configUser() string {
-	if Config.Index["datadex"] == nil {
+	if Config.Index[mainIndexName] == nil {
 		return ""
 	}
-	return Config.Index["datadex"].User
+	return Config.Index[mainIndexName].User
 }
