@@ -70,7 +70,7 @@ func readerHash(r io.Reader) (string, error) {
 	return hex, nil
 }
 
-func stringHash(s string) (string, error) {
+func StringHash(s string) (string, error) {
 	r := strings.NewReader(s)
 	h := sha1.New()
 	_, err := r.WriteTo(h)

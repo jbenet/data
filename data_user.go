@@ -271,7 +271,7 @@ func (i UserIndex) Passhash(pass string) (string, error) {
 	// additional hashing of the password before sending.
 	// this resulting `passhash` is really the user's password.
 	// this is so that passwords are never seen by the server as plaintext
-	return stringHash(pass + i.User)
+	return StringHash(pass + i.User)
 }
 
 func (i *UserIndex) GetInfo() (*UserProfile, error) {
