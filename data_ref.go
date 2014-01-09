@@ -1,8 +1,11 @@
 package data
 
 import (
+	"fmt"
 	"io/ioutil"
 )
+
+const RefLatest = "latest"
 
 // serializable into YAML
 type DatasetRefs struct {
@@ -79,6 +82,15 @@ func (h *HttpRefIndex) VersionRef(version string) (string, error) {
 		return "", err
 	}
 
+	// special ref latest
+	if version == RefLatest {
+		refs := h.SortedPublished()
+		if len(refs) == 0 {
+			return "", fmt.Errorf("no published refs")
+		}
+		return refs[len(refs)-1], nil
+	}
+
 	ref, _ := h.Refs.Versions[version]
 	return ref, nil
 }
@@ -91,6 +103,15 @@ func (h *HttpRefIndex) RefTimestamp(ref string) (string, error) {
 
 	time, _ := h.Refs.Published[ref]
 	return time, nil
+}
+
+func (h *HttpRefIndex) SortedPublished() []string {
+	vs := []string{}
+	pl := sortMapByValue(h.Refs.Published)
+	for _, p := range pl {
+		vs = append(vs, p.Key)
+	}
+	return vs
 }
 
 // DataIndex extension to generate a RefIndex
