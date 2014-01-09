@@ -245,7 +245,18 @@ func packPublishCmd(c *commander.Command, args []string) error {
 		return err
 	}
 
-	return p.Publish(false)
+	err = p.Publish(false)
+	if err != nil {
+		if strings.Contains(err.Error(), "forbidden") {
+			u := configUser()
+			d := p.datafile.Handle().Path()
+			o := p.datafile.Handle().Author
+			return fmt.Errorf(PublishingForbiddenMsg, u, d, o)
+		}
+		return err
+	}
+
+	return nil
 }
 
 func packCheckCmd(c *commander.Command, args []string) error {
@@ -432,6 +443,10 @@ const PublishedVersionSameMsg = `Version %s (%.7s) already published.
 It has the same contents you're trying to publish, so seems like
 your work here is done :)
 `
+
+const PublishingForbiddenMsg = `You (%s) lack permissions to publish to %s.
+Either, fork your own copy of the dataset (see 'data fork').
+Or ask the owner (%s) for collaboration privileges.`
 
 const NetErrMsg = `Connection to the index refused.
 Are you connected to the internet?
