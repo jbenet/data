@@ -122,3 +122,14 @@ func Unmarshal(in io.Reader, out interface{}) error {
 	// pOut("</Unmarshal>\n")
 	return goyaml.Unmarshal(buf, out)
 }
+
+// Userful for converting between representations
+func MarshalUnmarshal(in interface{}, out interface{}) error {
+	// struct -> yaml -> map for easy access
+	rdr, err := Marshal(in)
+	if err != nil {
+		return err
+	}
+
+	return Unmarshal(rdr, out)
+}
