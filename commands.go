@@ -11,6 +11,7 @@ var Cmd_data = &commander.Command{
   `,
 	Subcommands: []*commander.Command{
 		cmd_data_version,
+		cmd_data_config,
 		cmd_data_info,
 		cmd_data_list,
 		cmd_data_get,

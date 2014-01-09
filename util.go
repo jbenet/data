@@ -16,6 +16,7 @@ import (
 )
 
 var Debug bool
+var NotImplementedError = fmt.Errorf("Error: not implemented yet.")
 
 // Shorthand printing functions.
 func pErr(format string, a ...interface{}) {
