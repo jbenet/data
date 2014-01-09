@@ -65,7 +65,8 @@ var cmd_data_user_auth = &commander.Command{
 
     See data user.
   `,
-	Run: userAuthCmd,
+	Run:  userAuthCmd,
+	Flag: *flag.NewFlagSet("data-user-auth", flag.ExitOnError),
 }
 
 var cmd_data_user_pass = &commander.Command{
@@ -115,6 +116,7 @@ var cmd_data_user_url = &commander.Command{
 
 func init() {
 	cmd_data_user_info.Flag.Bool("edit", false, "edit user info")
+	cmd_data_user_auth.Flag.Bool("clear", false, "clear authentication")
 }
 
 func userCmdUserIndex(args []string) (*UserIndex, error) {
@@ -168,6 +170,18 @@ func userAddCmd(c *commander.Command, args []string) error {
 }
 
 func userAuthCmd(c *commander.Command, args []string) error {
+	// clear flag? sign out
+	if c.Flag.Lookup("clear").Value.Get().(bool) {
+		if err := configSet("index.datadex.user", ""); err != nil {
+			return err
+		}
+		if err := configSet("index.datadex.token", ""); err != nil {
+			return err
+		}
+		pOut("Signed out.\n")
+		return nil
+	}
+
 	ui, err := userCmdUserIndex(args)
 	if err != nil {
 		return err
