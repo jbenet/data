@@ -1,9 +1,9 @@
 package main
 
 import (
-	"os"
 	"fmt"
 	"github.com/jbenet/data"
+	"os"
 )
 
 // This package (data/data) builds the `data` commandline tool.
@@ -12,10 +12,10 @@ import (
 // library or executable. `data` needed to be both, hence this.
 
 func main() {
-  err := data.Cmd_data.Dispatch(os.Args[1:])
-  if err != nil {
-    fmt.Fprintf(os.Stderr, "%v\n", err)
-    os.Exit(1)
-  }
-  return
+	err := data.Cmd_data.Dispatch(os.Args[1:])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
+	}
+	return
 }
