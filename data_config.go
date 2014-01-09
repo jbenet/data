@@ -229,3 +229,11 @@ func NewConfigfile(path string) (*Configfile, error) {
 	}
 	return f, nil
 }
+
+// nice helpers
+func configUser() string {
+	if Config.Index["datadex"] == nil {
+		return ""
+	}
+	return Config.Index["datadex"].User
+}

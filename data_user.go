@@ -2,6 +2,7 @@ package data
 
 import (
 	"fmt"
+	"github.com/gonuts/flag"
 	"github.com/jbenet/commander"
 	"io"
 	"io/ioutil"
@@ -96,7 +97,8 @@ var cmd_data_user_info = &commander.Command{
 
     See data user.
   `,
-	Run: userInfoCmd,
+	Run:  userInfoCmd,
+	Flag: *flag.NewFlagSet("data-user-info", flag.ExitOnError),
 }
 
 var cmd_data_user_url = &commander.Command{
@@ -109,6 +111,10 @@ var cmd_data_user_url = &commander.Command{
     See data user.
   `,
 	Run: userUrlCmd,
+}
+
+func init() {
+	cmd_data_user_info.Flag.Bool("edit", false, "edit user info")
 }
 
 func userCmdUserIndex(args []string) (*UserIndex, error) {
@@ -210,6 +216,12 @@ func userPassCmd(c *commander.Command, args []string) error {
 }
 
 func userInfoCmd(c *commander.Command, args []string) error {
+	// default to user on config
+	cu := configUser()
+	if len(args) == 0 && len(cu) > 0 {
+		args = append(args, cu)
+	}
+
 	ui, err := userCmdUserIndex(args)
 	if err != nil {
 		return err
@@ -220,8 +232,8 @@ func userInfoCmd(c *commander.Command, args []string) error {
 		return err
 	}
 
-	// entered username. lookup and print out info.
-	if len(args) > 0 {
+	// not editing
+	if !c.Flag.Lookup("edit").Value.Get().(bool) {
 		rdr, err := Marshal(p)
 		if err != nil {
 			return err
@@ -231,7 +243,12 @@ func userInfoCmd(c *commander.Command, args []string) error {
 		return err
 	}
 
-	// no username. edit own profile.
+	if cu != ui.User {
+		return fmt.Errorf("Authenticated as %s."+
+			" Reauthenticate with 'data user auth'", cu)
+	}
+
+	// editing own profile.
 	err = fillOutUserProfile(p)
 	if err != nil {
 		return err
@@ -247,12 +264,20 @@ func userInfoCmd(c *commander.Command, args []string) error {
 }
 
 func userUrlCmd(c *commander.Command, args []string) error {
+	// default to user on config
+	if len(args) == 0 {
+		cu := configUser()
+		if len(cu) > 0 {
+			args = append(args, cu)
+		}
+	}
+
 	ui, err := userCmdUserIndex(args)
 	if err != nil {
 		return err
 	}
 
-	pOut("%s\n", ui.Http.Url)
+	pOut("%s\n", strings.Replace(ui.Http.Url, "/user", "", 1))
 	return nil
 }
 
