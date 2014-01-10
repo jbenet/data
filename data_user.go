@@ -165,7 +165,13 @@ func userAddCmd(c *commander.Command, args []string) error {
 		return err
 	}
 
-	pOut("%s registered.\n", ui.User)
+	pOut("Registered %s.\n", ui.User)
+	err = ui.Auth(pass)
+	if err != nil {
+		return err
+	}
+
+	pOut("Authenticated as %s.\n", ui.User)
 	return nil
 }
 
