@@ -386,12 +386,20 @@ func (mf *Manifest) Check(path string) (bool, error) {
 		return false, fmt.Errorf("data manifest: file not in manifest %s", path)
 	}
 
+	mfmt := "data manifest: check %.7s %s %s"
+
 	newHash, err := hashFile(path)
 	if err != nil {
-		return false, err
+		switch err.(type) {
+		case *os.PathError:
+			// non existent files count as not hashing correctly.
+			pOut(mfmt, oldHash, path, "FAIL - not found\n")
+			return false, nil
+		default:
+			return false, err
+		}
 	}
 
-	mfmt := "data manifest: check %.7s %s %s"
 	if newHash != oldHash {
 		pOut(mfmt, oldHash, path, "FAIL\n")
 		return false, nil
