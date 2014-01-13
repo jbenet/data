@@ -287,7 +287,7 @@ func NewManifestWithRef(ref string) (*Manifest, error) {
 }
 
 func (mf *Manifest) Generate() error {
-	pOut("Generating manifest...\n")
+	pOut("Generating Manifest file...\n")
 
 	// add new files to manifest file
 	// (for now add everything. `data manifest {add,rm}` in future)
@@ -311,6 +311,17 @@ func (mf *Manifest) Generate() error {
 		if err != nil {
 			return err
 		}
+	}
+
+	if len(*mf.Files) == 0 {
+		err := mf.WriteFile()
+		if err != nil {
+			return nil
+		}
+
+		pOut("Warning: no files in directory. Manifest is empty.\n")
+	} else {
+		pOut("%d files in Manifest.\n", len(*mf.Files))
 	}
 
 	return nil
