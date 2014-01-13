@@ -2,8 +2,8 @@ package data
 
 import (
 	"fmt"
-	"github.com/kr/s3"
-	"github.com/kr/s3/s3util"
+	"github.com/jbenet/s3"
+	"github.com/jbenet/s3/s3util"
 	"io"
 	"os"
 	"strings"
