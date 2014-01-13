@@ -18,6 +18,7 @@ var cmd_data_pack = &commander.Command{
       pack manifest   Show current package manifest.
       pack upload     Upload package to remote storage.
       pack download   Download package from remote storage.
+      pack publish    Publish package to dataset index.
       pack checksum   Verify all file checksums match.
 
 
