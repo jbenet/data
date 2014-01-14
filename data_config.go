@@ -148,7 +148,7 @@ var Config = &ConfigFormat{}
 // `
 var DefaultConfigText = `index:
   datadex:
-    url: http://datadex.io:8080
+    url: http://datadex.io
     user: ""
     token: ""
 `
