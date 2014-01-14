@@ -6,6 +6,7 @@ import (
 	"github.com/gonuts/flag"
 	"github.com/jbenet/commander"
 	"os"
+	"os/exec"
 	"os/user"
 	"strings"
 )
@@ -45,11 +46,16 @@ var cmd_data_config = &commander.Command{
 
 func init() {
 	cmd_data_config.Flag.Bool("show", false, "show config file")
+	cmd_data_config.Flag.Bool("edit", false, "edit config file in $EDITOR")
 }
 
 func configCmd(c *commander.Command, args []string) error {
 	if c.Flag.Lookup("show").Value.Get().(bool) {
 		return printConfig(Config)
+	}
+
+	if c.Flag.Lookup("edit").Value.Get().(bool) {
+		return configEditor()
 	}
 
 	if len(args) == 0 {
@@ -73,6 +79,19 @@ func printConfig(c *ConfigFormat) error {
 	f, _ := NewConfigfile("")
 	f.ConfigFormat = *c
 	return f.Write(os.Stdout)
+}
+
+func configEditor() error {
+	ed := os.Getenv("EDITOR")
+	if len(ed) < 1 {
+		pErr("No $EDITOR defined. Defaulting to `nano`.")
+		ed = "nano"
+	}
+
+	ed, args := execCmdArgs(ed, []string{globalConfigFile})
+	cmd := exec.Command(ed, args...)
+	cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
+	return cmd.Run()
 }
 
 func configGet(key string) (string, error) {

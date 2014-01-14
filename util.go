@@ -282,6 +282,21 @@ func readInputSilent() (string, error) {
 	return input, err
 }
 
+// Exec helper
+func execCmdArgs(path string, args []string) (string, []string) {
+	if args == nil {
+		args = []string{}
+	}
+
+	parts := strings.Split(path, " ")
+	if len(parts) > 1 {
+		path = parts[0]
+		args = append(parts[1:], args...)
+	}
+
+	return path, args
+}
+
 // Map sorting -- lifted from
 // https://groups.google.com/d/msg/golang-nuts/FT7cjmcL7gw/Gj4_aEsE_IsJ
 
