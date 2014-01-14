@@ -438,6 +438,22 @@ func (i *UserIndex) Add(pass string, email string) error {
 	return err
 }
 
+func (i *UserIndex) AwsCred() (*AwsCredentials, error) {
+	resp, err := i.Http.Get("awscred")
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	creds := &AwsCredentials{}
+	err = Unmarshal(resp.Body, creds)
+	if err != nil {
+		return nil, err
+	}
+
+	return creds, nil
+}
+
 // DataIndex extension to generate a UserIndex
 func (d *DataIndex) NewUserIndex(user string) *UserIndex {
 	return &UserIndex{
