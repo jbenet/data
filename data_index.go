@@ -63,9 +63,15 @@ func NewHttpClient() (*HttpClient, error) {
 	}
 
 	h := &HttpClient{
-		Url:       i.Url,
+		Url:       strings.ToLower(i.Url),
 		User:      i.User,
 		AuthToken: i.Token,
+	}
+
+	// ensure url has protocol prefix
+	if !strings.HasPrefix(h.Url, "http://") &&
+		!strings.HasPrefix(h.Url, "https://") {
+		h.Url = "http://" + h.Url
 	}
 
 	return h, nil
