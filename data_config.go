@@ -156,6 +156,12 @@ var DefaultConfigText = `index:
 // Load config file on statup
 func init() {
 
+	// alt config file path
+	if cf := os.Getenv("DATA_CONFIG"); len(cf) > 0 {
+		globalConfigFile = cf
+		pOut("Using config file path: %s\n", globalConfigFile)
+	}
+
 	// expand ~/
 	usr, err := user.Current()
 	if err != nil {
@@ -171,6 +177,7 @@ func init() {
 			panic("error: failed to write config " + globalConfigFile +
 				". " + err.Error())
 		}
+		pOut("Wrote new config file: %s\n", globalConfigFile)
 	}
 
 	// load config
