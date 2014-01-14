@@ -35,7 +35,9 @@ var cmd_data_config = &commander.Command{
       baz
 
     Config options are stored in the user's configuration file (~/.dataconfig).
-    This file is formatted like .gitconfig (INI style), and uses the gcfg parser.
+    This file is formatted in YAML, and uses the goyaml parser. (In the future,
+    it may be formatted like .gitconfig (INI style), using the gcfg parser.)
+
   `,
 	Run:  configCmd,
 	Flag: *flag.NewFlagSet("data-config", flag.ExitOnError),
