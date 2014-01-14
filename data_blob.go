@@ -14,16 +14,22 @@ var cmd_data_blob = &commander.Command{
 	Short:     "Manage blobs in the blobstore.",
 	Long: `data blob - Manage blobs in the blobstore.
 
-    Managing blobs means:
+  Commands:
 
-      put <hash>    Upload blob named by <hash> to blobstore.
-      get <hash>    Download blob named by <hash> from blobstore.
-      url <hash>    Output Url for blob named by <hash>.
-      check <hash>  Verify blob contents named by <hash> match <hash>.
-      show <hash>   Output blob contents named by <hash>.
+    put <hash> [<path>]     Upload blob named by <hash> to blobstore.
+    get <hash> [<path>]     Download blob named by <hash> from blobstore.
+    check <hash> [<path>]   Verify blob matches <hash>.
+    url <hash>              Output Url for blob named by <hash>.
+    hash [<path>]           Output hash for blob.
+
+  Arguments:
+
+    The <hash> argument is the blob's checksum, and id.
+    The <path> argument is the blob's target file.
+    If <path> is omitted, stdin/stdout are used.
 
 
-    What is a blob?
+  What is a blob?
 
     Datasets are made up of files, which are made up of blobs.
     (For now, 1 file is 1 blob. Chunking to be implemented)
@@ -32,14 +38,14 @@ var cmd_data_blob = &commander.Command{
     graphic hash function (sha1, for now). If git comes to mind,
     that's exactly right.
 
-    Local Blobstores
+  Local Blobstores
 
     data stores blobs in blobstores. Every local dataset has a
     blobstore (local caching with links TBI). Like in git, the blobs
     are stored safely in the blobstore (different directory) and can
     be used to reconstruct any corrupted/deleted/modified dataset files.
 
-    Remote Blobstores
+  Remote Blobstores
 
     data uses remote blobstores to distribute datasets across users.
     The datadex service includes a blobstore (currently an S3 bucket).
@@ -70,7 +76,7 @@ var cmd_data_blob = &commander.Command{
 }
 
 var cmd_data_blob_put = &commander.Command{
-	UsageLine: "put <hash>",
+	UsageLine: "put <hash> [<path>]",
 	Short:     "Upload blobs to a remote blobstore.",
 	Long: `data blob put - Upload blobs to a remote blobstore.
 
@@ -91,7 +97,7 @@ Arguments:
 }
 
 var cmd_data_blob_get = &commander.Command{
-	UsageLine: "get <hash>",
+	UsageLine: "get <hash> [<path>]",
 	Short:     "Download blobs from a remote blobstore.",
 	Long: `data blob get - Download blobs from a remote blobstore.
 
