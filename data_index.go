@@ -9,8 +9,11 @@ import (
 )
 
 type DataIndex struct {
-	Http      *HttpClient
-	BlobStore blobStore
+	Http *HttpClient
+
+	// For now, use S3Store directly. clean up interface later.
+	// BlobStore blobStore
+	BlobStore *S3Store
 }
 
 var mainDataIndex *DataIndex
@@ -24,18 +27,20 @@ func NewMainDataIndex() (*DataIndex, error) {
 		return mainDataIndex, nil
 	}
 
-	blobStore, err := NewS3Store("datadex.archives")
+	i := &DataIndex{}
+	err := error(nil)
+
+	i.Http, err = NewHttpClient()
 	if err != nil {
 		return nil, err
 	}
 
-	h, err := NewHttpClient()
+	i.BlobStore, err = NewS3Store("datadex.archives", i)
 	if err != nil {
 		return nil, err
 	}
 
-	mainDataIndex := &DataIndex{Http: h}
-	mainDataIndex.BlobStore = blobStore
+	mainDataIndex = i
 	return mainDataIndex, nil
 }
 
