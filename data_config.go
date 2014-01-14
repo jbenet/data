@@ -231,9 +231,15 @@ func NewConfigfile(path string) (*Configfile, error) {
 }
 
 // nice helpers
+const AnonymousUser = "anonymous"
+
 func configUser() string {
 	if Config.Index[mainIndexName] == nil {
-		return ""
+		return AnonymousUser
 	}
 	return Config.Index[mainIndexName].User
+}
+
+func isNamedUser(user string) bool {
+	return len(user) > 0 && user != AnonymousUser
 }

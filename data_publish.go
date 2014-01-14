@@ -30,7 +30,7 @@ func publishCmd(c *commander.Command, args []string) error {
 	pOut("==> Guided Data Package Publishing.\n")
 
 	u := configUser()
-	if len(u) < 1 {
+	if !isNamedUser(u) {
 		return fmt.Errorf(NotLoggedInErr)
 	}
 

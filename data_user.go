@@ -238,7 +238,7 @@ func userPassCmd(c *commander.Command, args []string) error {
 func userInfoCmd(c *commander.Command, args []string) error {
 	// default to user on config
 	cu := configUser()
-	if len(args) == 0 && len(cu) > 0 {
+	if len(args) == 0 && isNamedUser(cu) {
 		args = append(args, cu)
 	}
 
@@ -287,7 +287,7 @@ func userUrlCmd(c *commander.Command, args []string) error {
 	// default to user on config
 	if len(args) == 0 {
 		cu := configUser()
-		if len(cu) > 0 {
+		if isNamedUser(cu) {
 			args = append(args, cu)
 		}
 	}
