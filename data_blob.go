@@ -349,6 +349,18 @@ func (i *DataIndex) putBlob(hash string, fpath string) error {
 		return nil
 	}
 
+	// must verify hash before uploading (for integrity).
+	// (note that there is a TOCTTOU bug here, so not safe. just helps.)
+	vh, err := hashFile(fpath)
+	if err != nil {
+		return err
+	}
+
+	if vh != hash {
+		m := "put blob: %s hash error (expected %s, got %s)"
+		return fmt.Errorf(m, fpath, hash, vh)
+	}
+
 	pOut("put blob %.7s %s - uploading\n", hash, fpath)
 
 	f, err := os.Open(fpath)
