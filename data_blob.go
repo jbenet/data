@@ -75,6 +75,7 @@ var cmd_data_blob = &commander.Command{
 		cmd_data_blob_get,
 		cmd_data_blob_url,
 		cmd_data_blob_show,
+		cmd_data_blob_hash,
 	},
 }
 
@@ -162,6 +163,23 @@ Arguments:
 	Run: blobShowCmd,
 }
 
+var cmd_data_blob_hash = &commander.Command{
+	UsageLine: "hash <file>",
+	Short:     "Output hash for blob contents.",
+	Long: `data blob hash - Output hash for blob contents.
+
+    Output the hash of the blob contents stored in <file>
+
+    See data blob.
+
+Arguments:
+
+    <file>   path of the blob contents
+
+  `,
+	Run: blobHashCmd,
+}
+
 func init() {
 	cmd_data_blob.Flag.Bool("all", false, "all available blobs")
 	cmd_data_blob_get.Flag.Bool("all", false, "get all available blobs")
@@ -247,6 +265,19 @@ func blobShowCmd(c *commander.Command, args []string) error {
 	}
 
 	return dataIndex.copyBlob(hash, os.Stdout)
+}
+
+func blobHashCmd(c *commander.Command, args []string) error {
+	if len(args) < 1 {
+		return fmt.Errorf("%v: requires <file> argument", c.FullName())
+	}
+
+	hash, err := hashFile(args[0])
+	if err != nil {
+		return err
+	}
+	pOut("%s\n", hash)
+	return nil
 }
 
 // Uploads all blobs to blobstore
