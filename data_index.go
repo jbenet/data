@@ -48,6 +48,7 @@ const HttpHeaderUser = "X-Data-User"
 const HttpHeaderToken = "X-Data-Token"
 const HttpHeaderContentType = "Content-Type"
 const HttpHeaderContentTypeYaml = "application/yaml"
+const ApiUrlSuffix = "/api/v1"
 
 // Controls authenticated http accesses.
 type HttpClient struct {
@@ -72,6 +73,11 @@ func NewHttpClient() (*HttpClient, error) {
 	if !strings.HasPrefix(h.Url, "http://") &&
 		!strings.HasPrefix(h.Url, "https://") {
 		h.Url = "http://" + h.Url
+	}
+
+	// ensure url has api suffix
+	if !strings.HasSuffix(strings.ToLower(h.Url), ApiUrlSuffix) {
+		h.Url = h.Url + ApiUrlSuffix
 	}
 
 	return h, nil
