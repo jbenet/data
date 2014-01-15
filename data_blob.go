@@ -76,6 +76,7 @@ var cmd_data_blob = &commander.Command{
 		cmd_data_blob_url,
 		cmd_data_blob_show,
 		cmd_data_blob_hash,
+		cmd_data_blob_check,
 	},
 }
 
@@ -164,20 +165,39 @@ Arguments:
 }
 
 var cmd_data_blob_hash = &commander.Command{
-	UsageLine: "hash <file>",
+	UsageLine: "hash <path>",
 	Short:     "Output hash for blob contents.",
 	Long: `data blob hash - Output hash for blob contents.
 
-    Output the hash of the blob contents stored in <file>
+    Output the hash of the blob contents stored in <path>
 
     See data blob.
 
 Arguments:
 
-    <file>   path of the blob contents
+    <path>   path of the blob contents
 
   `,
 	Run: blobHashCmd,
+}
+
+var cmd_data_blob_check = &commander.Command{
+	UsageLine: "check <hash> <path>",
+	Short:     "Verify blob matches <hash>",
+	Long: `data blob check - Verify blob matches <hash>.
+
+    Verify the hash of the blob contents stored in <path> matches
+    <hash>.
+
+    See data blob.
+
+Arguments:
+
+    <hash>   name (cryptographic hash, checksum) of the blob.
+    <path>   path of the blob contents
+
+  `,
+	Run: blobCheckCmd,
 }
 
 func init() {
@@ -185,6 +205,7 @@ func init() {
 	cmd_data_blob_get.Flag.Bool("all", false, "get all available blobs")
 	cmd_data_blob_put.Flag.Bool("all", false, "put all available blobs")
 	cmd_data_blob_url.Flag.Bool("all", false, "urls for all available blobs")
+	cmd_data_blob_check.Flag.Bool("all", false, "check all available blobs")
 }
 
 type blobStore interface {
@@ -269,7 +290,7 @@ func blobShowCmd(c *commander.Command, args []string) error {
 
 func blobHashCmd(c *commander.Command, args []string) error {
 	if len(args) < 1 {
-		return fmt.Errorf("%v: requires <file> argument", c.FullName())
+		return fmt.Errorf("%v: requires <path> argument", c.FullName())
 	}
 
 	hash, err := hashFile(args[0])
@@ -278,6 +299,17 @@ func blobHashCmd(c *commander.Command, args []string) error {
 	}
 	pOut("%s\n", hash)
 	return nil
+}
+
+func blobCheckCmd(c *commander.Command, args []string) error {
+	blobs, err := blobCmd(c, args)
+	if err != nil {
+		return err
+	}
+	if len(args) == 1 {
+		return fmt.Errorf("%v: requires <path> argument", c.FullName())
+	}
+	return checkBlobs(blobs)
 }
 
 // Uploads all blobs to blobstore
@@ -356,6 +388,54 @@ func urlBlobs(blobs blobPaths) error {
 	}
 
 	return nil
+}
+
+// Check all blob hashes
+func checkBlobs(blobs blobPaths) error {
+
+	failures := 0
+	for fpath, hash := range blobs {
+		pass, err := checkBlob(hash, fpath)
+		if err != nil {
+			return err
+		}
+
+		if !pass {
+			failures++
+		}
+	}
+
+	count := len(blobs)
+	if failures > 0 {
+		return fmt.Errorf("data blob: %v/%v checksums failed!", failures, count)
+	}
+
+	pOut("data blob: %v checksums pass.\n", count)
+	return nil
+}
+
+func checkBlob(oldHash string, fpath string) (bool, error) {
+	mfmt := "check %.7s %s %s"
+
+	newHash, err := hashFile(fpath)
+	if err != nil {
+		switch err.(type) {
+		case *os.PathError:
+			// non existent files count as not hashing correctly.
+			pOut(mfmt, oldHash, fpath, "FAIL - not found\n")
+			return false, nil
+		default:
+			return false, err
+		}
+	}
+
+	if newHash != oldHash {
+		pOut(mfmt, oldHash, fpath, "FAIL\n")
+		return false, nil
+	}
+
+	dOut(mfmt, oldHash, fpath, "PASS\n")
+	return true, nil
 }
 
 // DataIndex extension to handle putting blob
