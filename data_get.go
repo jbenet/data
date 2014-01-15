@@ -39,11 +39,46 @@ var cmd_data_get = &commander.Command{
 }
 
 func getCmd(c *commander.Command, args []string) error {
-	if len(args) < 1 {
-		return fmt.Errorf("%v requires a <dataset> argument.", c.FullName())
+	var datasets []string
+
+	if len(args) > 0 {
+		// if args, get those datasets.
+		datasets = args
+	} else {
+		// if no args, use Datafile dependencies
+		df, _ := NewDefaultDatafile()
+		for _, dep := range df.Dependencies {
+			if NewHandle(dep).Valid() {
+				datasets = append(datasets, dep)
+			}
+		}
 	}
 
-	return GetDataset(args[0])
+	if len(datasets) == 0 {
+		return fmt.Errorf("%v: no datasets specified.\nEither enter a <dataset> "+
+			"argument, or add dependencies in a Datafile.", c.FullName())
+	}
+
+	for _, ds := range datasets {
+		err := GetDataset(ds)
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(datasets) == 0 {
+		return nil
+	}
+
+	// If many, Installation Summary
+	pOut("---------\n")
+	for _, ds := range datasets {
+		err := installedDatasetMessage(ds)
+		if err != nil {
+			pErr("%v\n", err)
+		}
+	}
+	return nil
 }
 
 func GetDataset(dataset string) error {
@@ -68,13 +103,25 @@ func GetDatasetFromIndex(h *Handle) error {
 
 	// Prepare local directories
 	dir := path.Join(DatasetDir, h.Path())
+	if err := os.RemoveAll(dir); err != nil {
+		return err
+	}
+
 	if err := os.MkdirAll(dir, 0777); err != nil {
+		return err
+	}
+
+	cwd, err := os.Getwd()
+	if err != nil {
 		return err
 	}
 
 	if err := os.Chdir(dir); err != nil {
 		return err
 	}
+
+	// move back out
+	defer os.Chdir(cwd)
 
 	// download manifest
 	if err := di.downloadManifest(h); err != nil {
@@ -91,12 +138,7 @@ func GetDatasetFromIndex(h *Handle) error {
 		return err
 	}
 
-	df, err := NewDatafile(DatafileName)
-	if err != nil {
-		return err
-	}
-
-	pOut("\nInstalled %s at %s\n", df.Dataset, dir)
+	pOut("\n")
 	return nil
 }
 
@@ -117,5 +159,17 @@ func (d *DataIndex) downloadManifest(h *Handle) error {
 		return err
 	}
 
+	return nil
+}
+
+func installedDatasetMessage(dataset string) error {
+	h := NewHandle(dataset)
+	fpath := DatafilePath(h.Path())
+	df, err := NewDatafile(fpath)
+	if err != nil {
+		return err
+	}
+
+	pOut("Installed %s at %s\n", df.Dataset, path.Dir(fpath))
 	return nil
 }
