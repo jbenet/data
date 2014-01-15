@@ -83,6 +83,28 @@ func StringHash(s string) (string, error) {
 	return hex, nil
 }
 
+func hashFile(path string) (string, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+
+	return readerHash(f)
+}
+
+func catFile(path string) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	br := bufio.NewReader(f)
+	_, err = io.Copy(os.Stdout, br)
+	return err
+}
+
 func copyFile(src string, dst string) error {
 	cmd := exec.Command("cp", src, dst)
 	return cmd.Run()

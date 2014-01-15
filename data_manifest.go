@@ -507,17 +507,6 @@ func listAllFiles(path string) []string {
 	return files
 }
 
-func hashFile(path string) (string, error) {
-
-	f, err := os.Open(path)
-	if err != nil {
-		return "", err
-	}
-	defer f.Close()
-
-	return readerHash(f)
-}
-
 func (mf *Manifest) ManifestHash() (string, error) {
 	buf, err := mf.Marshal()
 	if err != nil {
