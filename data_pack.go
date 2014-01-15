@@ -295,7 +295,7 @@ func (p *Pack) BlobPaths() (blobPaths, error) {
 	}
 
 	blobs := validBlobHashes(p.manifest.Files)
-	blobs[mfh] = p.manifest.Path
+	blobs[p.manifest.Path] = mfh
 	return blobs, nil
 }
 
@@ -338,6 +338,7 @@ func (p *Pack) blobsToUpload() ([]string, error) {
 		}
 
 		if !exists {
+			dOut("blobstore missing %s\n", hash)
 			missing = append(missing, hash)
 		}
 	}
@@ -394,7 +395,7 @@ func (p *Pack) Publish(force bool) error {
 		return err
 	}
 	if len(missing) > 0 {
-		return fmt.Errorf("%s objects must be uploaded first."+
+		return fmt.Errorf("%d objects must be uploaded first."+
 			" Run 'data pack upload'.", len(missing))
 	}
 
