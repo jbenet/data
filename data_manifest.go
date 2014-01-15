@@ -150,7 +150,7 @@ func manifestCmdPaths(c *commander.Command, args []string) ([]string, error) {
 	all := c.Flag.Lookup("all").Value.Get().(bool)
 	if all {
 		paths = []string{}
-		for path, _ := range *mf.Files {
+		for path, _ := range mf.Files {
 			paths = append(paths, path)
 		}
 	}
@@ -256,14 +256,14 @@ func manifestCheckCmd(c *commander.Command, args []string) error {
 
 type Manifest struct {
 	SerializedFile "-"
-	Files          *map[string]string ""
+	Files          blobPaths ""
 }
 
 func NewManifest(path string) *Manifest {
 	mf := &Manifest{SerializedFile: SerializedFile{Path: path}}
 
 	// initialize map
-	mf.Files = &map[string]string{}
+	mf.Files = blobPaths{}
 	mf.SerializedFile.Format = mf.Files
 
 	// attempt to load
@@ -302,7 +302,7 @@ func (mf *Manifest) Generate() error {
 	// (basically, missing things. User removes individually, or `rm --missing`)
 
 	// Once all files are listed, hash all the files, storing the hashes.
-	for f, h := range *mf.Files {
+	for f, h := range mf.Files {
 		if IsHash(h) && h != noHash {
 			continue
 		}
@@ -313,7 +313,7 @@ func (mf *Manifest) Generate() error {
 		}
 	}
 
-	if len(*mf.Files) == 0 {
+	if len(mf.Files) == 0 {
 		err := mf.WriteFile()
 		if err != nil {
 			return nil
@@ -321,7 +321,7 @@ func (mf *Manifest) Generate() error {
 
 		pOut("Warning: no files in directory. Manifest is empty.\n")
 	} else {
-		pOut("%d files in Manifest.\n", len(*mf.Files))
+		pOut("%d files in Manifest.\n", len(mf.Files))
 	}
 
 	return nil
@@ -329,20 +329,20 @@ func (mf *Manifest) Generate() error {
 }
 
 func (mf *Manifest) Clear() error {
-	for f, _ := range *mf.Files {
-		delete(*mf.Files, f)
+	for f, _ := range mf.Files {
+		delete(mf.Files, f)
 	}
 	return mf.WriteFile()
 }
 
 func (mf *Manifest) Add(path string) error {
 	// check, dont override (could have hash value)
-	_, exists := (*mf.Files)[path]
+	_, exists := (mf.Files)[path]
 	if exists {
 		return nil
 	}
 
-	(*mf.Files)[path] = noHash
+	(mf.Files)[path] = noHash
 
 	// Write out file (store incrementally)
 	err := mf.WriteFile()
@@ -356,12 +356,12 @@ func (mf *Manifest) Add(path string) error {
 
 func (mf *Manifest) Remove(path string) error {
 	// check, dont remove nonexistent path
-	_, exists := (*mf.Files)[path]
+	_, exists := (mf.Files)[path]
 	if !exists {
 		return nil
 	}
 
-	delete(*mf.Files, path)
+	delete(mf.Files, path)
 
 	// Write out file (store incrementally)
 	err := mf.WriteFile()
@@ -379,7 +379,7 @@ func (mf *Manifest) Hash(path string) error {
 		return err
 	}
 
-	(*mf.Files)[path] = h
+	(mf.Files)[path] = h
 
 	// Write out file (store incrementally)
 	err = mf.WriteFile()
@@ -392,7 +392,7 @@ func (mf *Manifest) Hash(path string) error {
 }
 
 func (mf *Manifest) Check(path string) (bool, error) {
-	oldHash, found := (*mf.Files)[path]
+	oldHash, found := (mf.Files)[path]
 	if !found {
 		return false, fmt.Errorf("data manifest: file not in manifest %s", path)
 	}
@@ -422,7 +422,7 @@ func (mf *Manifest) Check(path string) (bool, error) {
 
 func (mf *Manifest) PathsForHash(hash string) []string {
 	l := []string{}
-	for path, h := range *mf.Files {
+	for path, h := range mf.Files {
 		if h == hash {
 			l = append(l, path)
 		}
@@ -431,7 +431,7 @@ func (mf *Manifest) PathsForHash(hash string) []string {
 }
 
 func (mf *Manifest) HashForPath(path string) string {
-	hash, exists := (*mf.Files)[path]
+	hash, exists := (mf.Files)[path]
 	if exists {
 		return hash
 	}
@@ -440,7 +440,7 @@ func (mf *Manifest) HashForPath(path string) string {
 
 func (mf *Manifest) AllPaths() []string {
 	l := []string{}
-	for p, _ := range *mf.Files {
+	for p, _ := range mf.Files {
 		l = append(l, p)
 	}
 	return l
@@ -448,7 +448,7 @@ func (mf *Manifest) AllPaths() []string {
 
 func (mf *Manifest) AllHashes() []string {
 	l := []string{}
-	for _, h := range *mf.Files {
+	for _, h := range mf.Files {
 		l = append(l, h)
 	}
 	return l
@@ -456,12 +456,12 @@ func (mf *Manifest) AllHashes() []string {
 
 func (mf *Manifest) Complete() bool {
 	// must have at least one file (Datafile)
-	if len(*mf.Files) < 1 {
+	if len(mf.Files) < 1 {
 		return false
 	}
 
 	// all hashes must be computed
-	for _, h := range *mf.Files {
+	for _, h := range mf.Files {
 		if !IsHash(h) || h == noHash {
 			return false
 		}

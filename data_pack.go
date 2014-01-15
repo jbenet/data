@@ -258,7 +258,7 @@ func packCheckCmd(c *commander.Command, args []string) error {
 		}
 	}
 
-	count := len(*p.manifest.Files)
+	count := len(p.manifest.Files)
 	if failures > 0 {
 		return fmt.Errorf("data pack: %v/%v checksums failed!", failures, count)
 	}
@@ -288,15 +288,15 @@ func NewPack() (p *Pack, err error) {
 	return p, nil
 }
 
-func (p *Pack) BlobHashes() ([]string, error) {
+func (p *Pack) BlobPaths() (blobPaths, error) {
 	mfh, err := p.manifest.ManifestHash()
 	if err != nil {
-		return []string{}, err
+		return blobPaths{}, err
 	}
 
-	hashes := p.manifest.AllHashes()
-	hashes = append(hashes, mfh)
-	return hashes, nil
+	blobs := validBlobHashes(p.manifest.Files)
+	blobs[mfh] = p.manifest.Path
+	return blobs, nil
 }
 
 func (p *Pack) Make(clean bool) error {
@@ -326,12 +326,12 @@ func (p *Pack) Make(clean bool) error {
 func (p *Pack) blobsToUpload() ([]string, error) {
 	missing := []string{}
 
-	hashes, err := p.BlobHashes()
+	blobs, err := p.BlobPaths()
 	if err != nil {
 		return []string{}, err
 	}
 
-	for _, hash := range hashes {
+	for _, hash := range blobs {
 		exists, err := p.index.hasBlob(hash)
 		if err != nil {
 			return []string{}, err
@@ -350,12 +350,12 @@ func (p *Pack) Upload() error {
 		return fmt.Errorf(ManifestIncompleteMsg)
 	}
 
-	hashes, err := p.BlobHashes()
+	blobs, err := p.BlobPaths()
 	if err != nil {
 		return err
 	}
 
-	return putBlobs(hashes)
+	return putBlobs(blobs)
 }
 
 // Downloads pack from index.
@@ -364,12 +364,12 @@ func (p *Pack) Download() error {
 		return fmt.Errorf(`Manifest incomplete. Get new manifest copy.`)
 	}
 
-	hashes, err := p.BlobHashes()
+	blobs, err := p.BlobPaths()
 	if err != nil {
 		return err
 	}
 
-	return getBlobs(hashes)
+	return getBlobs(blobs)
 }
 
 // Publishes pack to the Index

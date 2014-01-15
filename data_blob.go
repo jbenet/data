@@ -7,6 +7,7 @@ import (
 	"github.com/jbenet/commander"
 	"io"
 	"os"
+	"path"
 )
 
 var cmd_data_blob = &commander.Command{
@@ -16,11 +17,12 @@ var cmd_data_blob = &commander.Command{
 
   Commands:
 
-    put <hash> [<path>]     Upload blob named by <hash> to blobstore.
-    get <hash> [<path>]     Download blob named by <hash> from blobstore.
-    check <hash> [<path>]   Verify blob matches <hash>.
-    url <hash>              Output Url for blob named by <hash>.
-    hash [<path>]           Output hash for blob.
+    put <hash> <path>     Upload blob named by <hash> to blobstore.
+    get <hash> <path>     Download blob named by <hash> from blobstore.
+    check <hash> <path>   Verify blob matches <hash>.
+    url <hash>            Output Url for blob named by <hash>.
+    show <hash>           Output blob contents for hash.
+    hash <path>           Output hash for blob contents.
 
   Arguments:
 
@@ -72,11 +74,12 @@ var cmd_data_blob = &commander.Command{
 		cmd_data_blob_put,
 		cmd_data_blob_get,
 		cmd_data_blob_url,
+		cmd_data_blob_show,
 	},
 }
 
 var cmd_data_blob_put = &commander.Command{
-	UsageLine: "put <hash> [<path>]",
+	UsageLine: "put <hash> <path>",
 	Short:     "Upload blobs to a remote blobstore.",
 	Long: `data blob put - Upload blobs to a remote blobstore.
 
@@ -90,6 +93,7 @@ var cmd_data_blob_put = &commander.Command{
 Arguments:
 
     <hash>   name (cryptographic hash, checksum) of the blob.
+    <path>   path of the blob contents to upload.
 
   `,
 	Run:  blobPutCmd,
@@ -111,6 +115,7 @@ var cmd_data_blob_get = &commander.Command{
 Arguments:
 
     <hash>   name (cryptographic hash, checksum) of the blob.
+    <path>   path to put the blob contents in.
 
   `,
 	Run:  blobGetCmd,
@@ -137,6 +142,26 @@ Arguments:
 	Flag: *flag.NewFlagSet("data-blob-url", flag.ExitOnError),
 }
 
+var cmd_data_blob_show = &commander.Command{
+	UsageLine: "show <hash>",
+	Short:     "Output blob contents for hash.",
+	Long: `data blob show - Output blob contents for hash.
+
+    Output the blob contents stored in the blobstore for hash.
+    If the blob is available locally, that copy is used (after
+    hashing to verify correctness). Otherwise, it is downloaded
+    from the blobstore.
+
+    See data blob.
+
+Arguments:
+
+    <hash>   name (cryptographic hash, checksum) of the blob.
+
+  `,
+	Run: blobShowCmd,
+}
+
 func init() {
 	cmd_data_blob.Flag.Bool("all", false, "all available blobs")
 	cmd_data_blob_get.Flag.Bool("all", false, "get all available blobs")
@@ -151,58 +176,69 @@ type blobStore interface {
 	Url(key string) string
 }
 
+// map { path : hash } (backward because of dup hashes)
+type blobPaths map[string]string
+
 // Handles arguments and dispatches subcommand.
-func blobCmd(c *commander.Command, args []string) ([]string, error) {
+func blobCmd(c *commander.Command, args []string) (blobPaths, error) {
 
-	hashes := args
+	blobs := blobPaths{}
 
-	// Use all hashes in the manifest if --all is passed in.
+	// Use all blobs in the manifest if --all is passed in.
 	all := c.Flag.Lookup("all").Value.Get().(bool)
 	if all {
 		mf := NewDefaultManifest()
-		hashes = mf.AllHashes()
-		if len(hashes) < 1 {
-			return nil, fmt.Errorf("%v: no blobs in manifest.", c.FullName())
+		blobs = validBlobHashes(mf.Files)
+		if len(blobs) < 1 {
+			return nil, fmt.Errorf("%v: no blobs tracked in manifest.", c.FullName())
+		}
+	} else {
+		switch len(args) {
+		case 2:
+			blobs[args[1]] = args[0]
+		case 1:
+			blobs[""] = args[0]
+		case 0:
+			return nil,
+				fmt.Errorf("%v: requires <hash> argument (or --all)", c.FullName())
 		}
 	}
 
-	if len(hashes) < 1 {
-		return nil, fmt.Errorf("%v: requires <hash> argument (or --all)", c.FullName())
-	}
-
-	return hashes, nil
+	return blobs, nil
 }
 
 func blobGetCmd(c *commander.Command, args []string) error {
-	hashes, err := blobCmd(c, args)
+	blobs, err := blobCmd(c, args)
 	if err != nil {
 		return err
 	}
-	return getBlobs(hashes)
+	return getBlobs(blobs)
 }
 
 func blobPutCmd(c *commander.Command, args []string) error {
-	hashes, err := blobCmd(c, args)
+	blobs, err := blobCmd(c, args)
 	if err != nil {
 		return err
 	}
-	return putBlobs(hashes)
+	return putBlobs(blobs)
 }
 
 func blobUrlCmd(c *commander.Command, args []string) error {
-	hashes, err := blobCmd(c, args)
+	blobs, err := blobCmd(c, args)
 	if err != nil {
 		return err
 	}
-	return urlBlobs(hashes)
+	return urlBlobs(blobs)
 }
 
-// Uploads all blobs named by `hashes` to blobstore
-func putBlobs(hashes []string) error {
+func blobShowCmd(c *commander.Command, args []string) error {
+	if len(args) < 1 {
+		return fmt.Errorf("%v: requires <hash> argument", c.FullName())
+	}
 
-	hashes, err := validHashes(hashes)
-	if err != nil {
-		return err
+	hash := args[0]
+	if !IsHash(hash) {
+		return fmt.Errorf("%v: invalid hash '%s'", c.FullName(), hash)
 	}
 
 	dataIndex, err := NewMainDataIndex()
@@ -210,14 +246,26 @@ func putBlobs(hashes []string) error {
 		return err
 	}
 
-	for _, hash := range hashes {
+	return dataIndex.copyBlob(hash, os.Stdout)
+}
 
-		paths, err := blobPaths(hash)
-		if err != nil {
-			return err
-		}
+// Uploads all blobs to blobstore
+func putBlobs(blobs blobPaths) error {
+	blobs = validBlobHashes(blobs)
 
-		err = dataIndex.putBlob(hash, paths[0])
+	dataIndex, err := NewMainDataIndex()
+	if err != nil {
+		return err
+	}
+
+	// flip map, to skip dupes
+	flipped := map[string]string{}
+	for path, hash := range blobs {
+		flipped[hash] = path
+	}
+
+	for hash, path := range flipped {
+		err = dataIndex.putBlob(hash, path)
 		if err != nil {
 			return err
 		}
@@ -226,25 +274,23 @@ func putBlobs(hashes []string) error {
 	return nil
 }
 
-// Downloads all blobs named by `hashes` from blobstore
-func getBlobs(hashes []string) error {
-
-	hashes, err := validHashes(hashes)
-	if err != nil {
-		return err
-	}
+// Downloads all blobs from blobstore
+func getBlobs(blobs blobPaths) error {
+	blobs = validBlobHashes(blobs)
 
 	dataIndex, err := NewMainDataIndex()
 	if err != nil {
 		return err
 	}
 
-	for _, hash := range hashes {
+	// group map, to copy dupes
+	grouped := map[string][]string{}
+	for path, hash := range blobs {
+		g, _ := grouped[hash]
+		grouped[hash] = append(g, path)
+	}
 
-		paths, err := blobPaths(hash)
-		if err != nil {
-			return err
-		}
+	for hash, paths := range grouped {
 
 		// download one blob
 		err = dataIndex.getBlob(hash, paths[0])
@@ -265,20 +311,16 @@ func getBlobs(hashes []string) error {
 	return nil
 }
 
-// Shows all urls for blobs named by `hashes`
-func urlBlobs(hashes []string) error {
-
-	hashes, err := validHashes(hashes)
-	if err != nil {
-		return err
-	}
+// Shows all urls for blobs
+func urlBlobs(blobs blobPaths) error {
+	blobs = validBlobHashes(blobs)
 
 	dataIndex, err := NewMainDataIndex()
 	if err != nil {
 		return err
 	}
 
-	for _, hash := range hashes {
+	for _, hash := range blobs {
 		pOut("%v\n", dataIndex.urlBlob(hash))
 	}
 
@@ -286,7 +328,15 @@ func urlBlobs(hashes []string) error {
 }
 
 // DataIndex extension to handle putting blob
-func (i *DataIndex) putBlob(hash string, path string) error {
+func (i *DataIndex) putBlob(hash string, fpath string) error {
+
+	// disallow empty paths
+	// (stdin doesn't make sense when hashing must have already ocurred)
+	if len(fpath) == 0 {
+		return fmt.Errorf("put blob %.7s - error: no path supplied", hash)
+	}
+
+	fpath = path.Clean(fpath)
 
 	// first, check the blobstore doesn't already have it.
 	exists, err := i.hasBlob(hash)
@@ -295,13 +345,13 @@ func (i *DataIndex) putBlob(hash string, path string) error {
 	}
 
 	if exists {
-		pOut("put blob %.7s %s - exists\n", hash, path)
+		pOut("put blob %.7s %s - exists\n", hash, fpath)
 		return nil
 	}
 
-	pOut("put blob %.7s %s - uploading\n", hash, path)
+	pOut("put blob %.7s %s - uploading\n", hash, fpath)
 
-	f, err := os.Open(path)
+	f, err := os.Open(fpath)
 	if err != nil {
 		return err
 	}
@@ -322,22 +372,32 @@ func (i *DataIndex) putBlob(hash string, path string) error {
 }
 
 // DataIndex extension to handle getting blob
-func (i *DataIndex) getBlob(hash string, path string) error {
-	pOut("get blob %.7s %s\n", hash, path)
+func (i *DataIndex) getBlob(hash string, fpath string) error {
 
-	r, err := i.BlobStore.Get(BlobKey(hash))
-	if err != nil {
-		return err
+	// disallow empty paths
+	if len(fpath) == 0 {
+		return fmt.Errorf("get blob %.7s - error: no path supplied", hash)
 	}
-	defer r.Close()
 
-	br := bufio.NewReader(r)
-	w, err := os.Create(path)
+	fpath = path.Clean(fpath)
+
+	pOut("get blob %.7s %s\n", hash, fpath)
+	w, err := os.Create(fpath)
 	if err != nil {
 		return err
 	}
 	defer w.Close()
 
+	return i.copyBlob(hash, w)
+}
+
+func (i *DataIndex) copyBlob(hash string, w io.WriteCloser) error {
+	r, err := i.findBlob(hash)
+	if err != nil {
+		return err
+	}
+
+	br := bufio.NewReader(r)
 	_, err = io.Copy(w, br)
 	if err != nil {
 		return err
@@ -356,6 +416,31 @@ func (i *DataIndex) getBlob(hash string, path string) error {
 	return nil
 }
 
+func (i *DataIndex) findBlob(hash string) (io.ReadCloser, error) {
+
+	mf := NewDefaultManifest()
+	paths := mf.PathsForHash(hash)
+	for _, p := range paths {
+		dOut("found local blob copy. verifying hash. %s\n", p)
+		h, err := hashFile(p)
+		if err != nil {
+			continue
+		}
+
+		if hash == h {
+			f, err := os.Open(p)
+			if err != nil {
+				continue
+			}
+
+			return f, nil
+		}
+	}
+
+	dOut("no local blob copy. fetch from remote blobstore.\n")
+	return i.BlobStore.Get(BlobKey(hash))
+}
+
 // DataIndex extension to check if blob exists
 func (i *DataIndex) hasBlob(hash string) (bool, error) {
 	return i.BlobStore.Has(BlobKey(hash))
@@ -367,7 +452,7 @@ func (i *DataIndex) urlBlob(hash string) string {
 }
 
 // Returns all paths associated with blob
-func blobPaths(hash string) ([]string, error) {
+func allBlobPaths(hash string) ([]string, error) {
 	mf := NewDefaultManifest()
 
 	paths := mf.PathsForHash(hash)
@@ -387,4 +472,15 @@ func blobPaths(hash string) ([]string, error) {
 // Returns the blobstore key for blob
 func BlobKey(hash string) string {
 	return fmt.Sprintf("/blob/%s", hash)
+}
+
+// Prune out invalid blob paths (bad hashes, bad paths)
+func validBlobHashes(blobs blobPaths) blobPaths {
+	pruned := blobPaths{}
+	for fpath, hash := range blobs {
+		if IsHash(hash) {
+			pruned[fpath] = hash
+		}
+	}
+	return pruned
 }
