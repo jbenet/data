@@ -18,6 +18,31 @@ type DatasetRefs struct {
 	Versions map[string]string
 }
 
+func (r DatasetRefs) LastUpdated() string {
+	pl := sortMapByValue(r.Published)
+	if len(pl) > 0 {
+		return pl[len(pl)-1].Value
+	}
+	return ""
+}
+
+func (r DatasetRefs) LatestPublished() string {
+	s := r.SortedPublished()
+	if len(s) == 0 {
+		return ""
+	}
+	return s[len(s)-1]
+}
+
+func (r DatasetRefs) SortedPublished() []string {
+	vs := []string{}
+	pl := sortMapByValue(r.Published)
+	for _, p := range pl {
+		vs = append(vs, p.Key)
+	}
+	return vs
+}
+
 type HttpRefIndex struct {
 	Http    *HttpClient
 	Dataset string
@@ -106,12 +131,7 @@ func (h *HttpRefIndex) RefTimestamp(ref string) (string, error) {
 }
 
 func (h *HttpRefIndex) SortedPublished() []string {
-	vs := []string{}
-	pl := sortMapByValue(h.Refs.Published)
-	for _, p := range pl {
-		vs = append(vs, p.Key)
-	}
-	return vs
+	return h.Refs.SortedPublished()
 }
 
 // DataIndex extension to generate a RefIndex
