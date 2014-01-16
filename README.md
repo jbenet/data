@@ -146,12 +146,12 @@ name: Juan
 email: juan@benet.ai
 github: jbenet
 twitter: '@jbenet'
-homepage: benet.ai
+website: benet.ai
 
 > data user info --edit
 Editing user profile. [Current value].
 Full Name: [] Juan Batiz-Benet
-Homepage Url: []
+Website Url: []
 Github username: []
 Twitter username: []
 Profile saved.
@@ -333,7 +333,7 @@ formats: {<format> : <format url>}
 # optional information
 description: Text describing dataset.
 repository: <repo url>
-homepage: <dataset url>
+website: <dataset url>
 license: <license url>
 contributors: ["Author Name [<email>] [(url)]>", ...]
 sources: [<source urls>]
@@ -353,7 +353,7 @@ dataset: feynman/spinning-plate-measurements
 title: Measurements of Plate Rotation
 contributors:
   - Richard Feynman <feynman@caltech.edu>
-homepage: http://caltech.edu/~feynman/not-girls/plate-stuff/trial3
+website: http://caltech.edu/~feynman/not-girls/plate-stuff/trial3
 ```
 
 much more friendly and approachable than this
@@ -365,7 +365,7 @@ much more friendly and approachable than this
   "contributors": [
     "Richard Feynman <feynman@caltech.edu>"
   ],
-  "homepage": "http://caltech.edu/~feynman/not-girls/plate-stuff/trial3"
+  "website": "http://caltech.edu/~feynman/not-girls/plate-stuff/trial3"
 }
 ```
 

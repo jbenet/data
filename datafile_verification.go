@@ -90,7 +90,7 @@ func fillOutUserProfile(p *UserProfile) error {
 	fields := map[string]*string{
 		"Full Name": &p.Name,
 		// "Email (required)":            &p.Email,
-		"Homepage Url":     &p.Homepage,
+		"Website Url":      &p.Website,
 		"Github username":  &p.Github,
 		"Twitter username": &p.Twitter,
 	}

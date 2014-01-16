@@ -19,7 +19,7 @@ import (
   # optional information
   description: Text describing dataset.
   repository: <repo url>
-  homepage: <dataset url>
+  website: <dataset url>
   license: <license url>
   contributors: ["Author Name [<email>] [(url)]>", ...]
   sources: [<source urls>]
@@ -36,7 +36,7 @@ type datafileContents struct {
 
 	Description  string   ",omitempty"
 	Repository   string   ",omitempty"
-	Homepage     string   ",omitempty"
+	Website      string   ",omitempty"
 	License      string   ",omitempty"
 	Contributors []string ",omitempty"
 	Sources      []string ",omitempty"

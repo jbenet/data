@@ -93,7 +93,7 @@ var cmd_data_user_info = &commander.Command{
       Email Address
       Github Username
       Twitter Username
-      Homepage Url
+      Website Url
       Packages List
 
     See data user.
@@ -337,7 +337,7 @@ type UserProfile struct {
 	Email    string
 	Github   string   ",omitempty"
 	Twitter  string   ",omitempty"
-	Homepage string   ",omitempty"
+	Website  string   ",omitempty"
 	Packages []string ",omitempty"
 }
 
