@@ -28,7 +28,7 @@ import (
 // Serializable into YAML
 type datafileContents struct {
 	Dataset string
-	Title   string ",omitempty"
+	Tagline string
 
 	Mirrors      []string          ",omitempty"
 	Dependencies []string          ",omitempty"
