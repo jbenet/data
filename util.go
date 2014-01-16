@@ -5,6 +5,7 @@ import (
 	"crypto/sha1"
 	"fmt"
 	"github.com/dotcloud/docker/pkg/term"
+	"github.com/xeonx/timeago"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -13,6 +14,7 @@ import (
 	"path"
 	"sort"
 	"strings"
+	"time"
 	"unicode"
 )
 
@@ -38,6 +40,12 @@ func dOut(format string, a ...interface{}) {
 	if Debug {
 		pOut(format, a...)
 	}
+}
+
+// human-readable time ago
+func TimeAgo(s string) string {
+	t, _ := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", s)
+	return timeago.English.Format(t)
 }
 
 // Checks whether string is a hash (sha1)
