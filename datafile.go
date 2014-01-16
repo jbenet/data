@@ -1,7 +1,10 @@
 package data
 
 import (
+	"os"
 	"path"
+	"path/filepath"
+	"strings"
 )
 
 /*
@@ -86,4 +89,65 @@ func (d *Datafile) Handle() *Handle {
 
 func (d *Datafile) Valid() bool {
 	return d.Handle().Valid()
+}
+
+// datafile manipulation utils
+
+// Return array of all Datafiles in directory
+func DatafilesInDir(dir string, recursive bool) ([]*Datafile, error) {
+	filenames := []string{}
+	walkFn := func(path string, info os.FileInfo, err error) error {
+
+		if info.IsDir() {
+
+			// entirely skip hidden dirs
+			if len(info.Name()) > 1 && strings.HasPrefix(info.Name(), ".") {
+				return filepath.SkipDir
+			}
+
+			if !recursive {
+				return filepath.SkipDir
+			}
+
+			return nil
+		}
+
+		// Datafile?
+		if strings.HasSuffix(path, "/"+DatafileName) {
+			filenames = append(filenames, path)
+		}
+
+		return nil
+	}
+
+	err := filepath.Walk(dir, walkFn)
+	if err != nil {
+		return nil, err
+	}
+
+	// turn filenames into datafiles
+	files := []*Datafile{}
+	for _, p := range filenames {
+		f, err := NewDatafile(p)
+		if err != nil {
+			return nil, err
+		}
+
+		files = append(files, f)
+	}
+	return files, nil
+}
+
+// group Datafiles  { path : [Datafile, ], }
+type DatafileGroupMap map[string][]*Datafile
+
+func GroupedDatafiles(files []*Datafile) *DatafileGroupMap {
+	grouped := DatafileGroupMap{}
+
+	for _, f := range files {
+		group := f.Handle().Path()
+		grouped[group] = append(grouped[group], f)
+	}
+
+	return &grouped
 }
