@@ -56,6 +56,10 @@ func (d *Handle) Path() string {
 
 // order: rsplit @, split /, rsplit .
 func (d *Handle) SetDataset(s string) {
+	// no / is invalid
+	if strings.Index(s, "/") == 0 {
+		return
+	}
 
 	nam_idx := strings.Index(s, "/")
 	if nam_idx < 0 {
@@ -75,7 +79,7 @@ func (d *Handle) SetDataset(s string) {
 
 	// parts
 	d.Author = slice(s, 0, nam_idx)
-	d.Name = slice(s, nam_idx, fmt_idx)
+	d.Name = slice(s, nam_idx+1, fmt_idx)
 	d.Format = slice(s, fmt_idx+1, ver_idx)
 	d.Version = slice(s, ver_idx+1, len(s))
 }
