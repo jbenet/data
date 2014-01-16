@@ -110,6 +110,7 @@ func copyFile(src string, dst string) error {
 	return cmd.Run()
 }
 
+// remove duplicates in a string slice
 func set(slice []string) []string {
 	dedup := []string{}
 	elems := map[string]bool{}
@@ -341,6 +342,7 @@ func sortMapByValue(m map[string]string) pairList {
 	i := 0
 	for k, v := range m {
 		p[i] = pair{k, v}
+		i++
 	}
 	sort.Sort(p)
 	return p

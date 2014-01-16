@@ -90,7 +90,7 @@ func (d *Datafile) Valid() bool {
 
 // datafile manipulation utils
 
-// Return array of all Datafiles in directory
+// Return array of all Datafiles
 func NewDatafiles(filenames []string) ([]*Datafile, error) {
 	files := []*Datafile{}
 	for _, p := range filenames {
