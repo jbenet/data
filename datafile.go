@@ -1,9 +1,7 @@
 package data
 
 import (
-	"os"
 	"path"
-	"path/filepath"
 	"strings"
 )
 
@@ -94,38 +92,7 @@ func (d *Datafile) Valid() bool {
 // datafile manipulation utils
 
 // Return array of all Datafiles in directory
-func DatafilesInDir(dir string, recursive bool) ([]*Datafile, error) {
-	filenames := []string{}
-	walkFn := func(path string, info os.FileInfo, err error) error {
-
-		if info.IsDir() {
-
-			// entirely skip hidden dirs
-			if len(info.Name()) > 1 && strings.HasPrefix(info.Name(), ".") {
-				return filepath.SkipDir
-			}
-
-			if !recursive {
-				return filepath.SkipDir
-			}
-
-			return nil
-		}
-
-		// Datafile?
-		if strings.HasSuffix(path, "/"+DatafileName) {
-			filenames = append(filenames, path)
-		}
-
-		return nil
-	}
-
-	err := filepath.Walk(dir, walkFn)
-	if err != nil {
-		return nil, err
-	}
-
-	// turn filenames into datafiles
+func NewDatafiles(filenames []string) ([]*Datafile, error) {
 	files := []*Datafile{}
 	for _, p := range filenames {
 		f, err := NewDatafile(p)

@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"sort"
 	"strings"
 	"unicode"
@@ -249,6 +250,43 @@ func createFile(filename string) (*os.File, error) {
 		return nil, err
 	}
 	return file, err
+}
+
+// Return array of all files matching func
+func FindFiles(dir string, recursive bool, skipHidden bool) ([]string, error) {
+	filenames := []string{}
+	walkFn := func(path string, info os.FileInfo, err error) error {
+
+		if info.IsDir() {
+
+			// entirely skip hidden dirs
+			if skipHidden &&
+				len(info.Name()) > 1 && strings.HasPrefix(info.Name(), ".") {
+				return filepath.SkipDir
+			}
+
+			if !recursive {
+				return filepath.SkipDir
+			}
+
+			return nil
+		}
+
+		// hidden?
+		if skipHidden && strings.HasPrefix(info.Name(), ".") {
+			return nil
+		}
+
+		filenames = append(filenames, path)
+		return nil
+	}
+
+	err := filepath.Walk(dir, walkFn)
+	if err != nil {
+		return nil, err
+	}
+
+	return filenames, nil
 }
 
 // Extraction
