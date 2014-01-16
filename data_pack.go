@@ -307,10 +307,25 @@ func (p *Pack) Make(clean bool) error {
 		}
 	}
 
+	// fill out datafile defaults.
+	if len(p.datafile.Dataset) == 0 {
+		p.datafile.Dataset = configUser() + "/@1.0"
+	}
+
 	// ensure the dataset has required information
-	err := fillOutDatafileInPath(p.datafile.Path)
+	err := fillOutDatafile(p.datafile)
 	if err != nil {
 		return err
+	}
+
+	// fill out default website
+	if len(p.datafile.Website) == 0 {
+		dataIndex, err := NewMainDataIndex()
+		if err == nil {
+			h := p.datafile.Handle()
+			p.datafile.Website = dataIndex.Http.Url + "/" + h.Path()
+			p.datafile.WriteFile() // ignore error. best effort.
+		}
 	}
 
 	// generate manifest

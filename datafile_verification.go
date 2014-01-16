@@ -38,12 +38,12 @@ func fillOutDatafile(df *Datafile) error {
 
 	h := df.Handle()
 	fields := map[string]*string{
-		"author name (required)":     &h.Author,
-		"dataset id (required)":      &h.Name,
-		"dataset version (required)": &h.Version,
-		"dataset title (optional)":   &df.Title,
-		"description (optional)":     &df.Description,
-		"license name (optional)":    &df.License,
+		"author id (required)":           &h.Author,
+		"dataset id (required)":          &h.Name,
+		"dataset version (required)":     &h.Version,
+		"tagline description (required)": &df.Tagline,
+		"long description (optional)":    &df.Description,
+		"license name (optional)":        &df.License,
 	}
 
 	for p, f := range fields {
@@ -65,14 +65,19 @@ func fillOutDatafile(df *Datafile) error {
 }
 
 func fillOutDatafileField(prompt string, field *string) error {
-	for len(*field) < 1 {
-		pOut("Enter %s: ", prompt)
+	first := true
+	for len(*field) < 1 || first {
+		first = false
+
+		pOut("Enter %s [%s]: ", prompt, *field)
 		line, err := readInput()
 		if err != nil {
 			return err
 		}
 
-		*field = line
+		if len(line) > 0 {
+			*field = line
+		}
 
 		// if not required, don't loop
 		if !strings.Contains(prompt, "required") {
