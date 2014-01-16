@@ -43,6 +43,28 @@ func (r DatasetRefs) SortedPublished() []string {
 	return vs
 }
 
+func (r DatasetRefs) ResolveRef(ref string) string {
+
+	// default to latest (like HEAD)
+	if len(ref) == 0 {
+		ref = RefLatest
+	}
+
+	// latest -> timestamp sorted
+	if ref == RefLatest {
+		return r.LatestPublished()
+	}
+
+	// look it up in versions table
+	ref2, found := r.Versions[ref]
+	if found {
+		return ref2
+	}
+
+	// Guess we have no link, return it then.
+	return ref
+}
+
 type HttpRefIndex struct {
 	Http    *HttpClient
 	Dataset string
