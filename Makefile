@@ -1,3 +1,6 @@
+deps:
+	go get ./...
+
 build:
 	go build
 	cd data && go build
