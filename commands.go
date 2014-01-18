@@ -72,7 +72,7 @@ func commandsCmd(c *commander.Command, args []string) error {
 
 func commandsHelpCmd(c *commander.Command, args []string) error {
 	pOut(referenceHeaderMsg)
-	pOut("Generated on %s.\n\n", time.Now().UTC().String())
+	pOut("Generated on %s.\n\n", time.Now().UTC().Format("2006-01-02"))
 
 	var printCmds func(*commander.Command, int)
 	printCmds = func(c *commander.Command, level int) {
