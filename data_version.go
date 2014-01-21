@@ -4,7 +4,7 @@ import (
 	"github.com/jbenet/commander"
 )
 
-const Version = "0.0.5"
+const Version = "0.1.0"
 
 var cmd_data_version = &commander.Command{
 	UsageLine: "version",

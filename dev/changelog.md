@@ -1,5 +1,19 @@
 # data changelog
 
+## v0.1.0 2014-01-21
+
+First preview (alpha)
+
+- release builds
+- data commands (for reference)
+- data pack make -- Datafile defaults
+- datadex api suffix
+- data blob put -- verify hash
+- data blob {hash, check}
+- datadex interop
+- data config: env var, --edit
+- s3 token based auth for uploading
+- s3 anonymous downloading
 
 ## v0.0.5 2014-01-09
 
