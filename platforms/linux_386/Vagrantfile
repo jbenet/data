@@ -26,6 +26,7 @@ Vagrant.configure("2") do |config|
     tar xf go1.2.linux-386.tar.gz
     mv go /usr/local/go
     chown -R vagrant /home/vagrant/go
+    ln -s go/src/github.com/jbenet/data /home/vagrant/data
 
     # setup go workspace
     echo "export GOROOT=/usr/local/go" >> /home/vagrant/.bashrc
