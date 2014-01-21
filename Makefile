@@ -1,3 +1,5 @@
+all: build
+
 deps:
 	go get ./...
 
