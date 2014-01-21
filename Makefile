@@ -1,3 +1,27 @@
+
+OS=$(shell uname -s)
+ifeq ($(OS),Darwin)
+OS=darwin
+else ifeq ($(OS),Linux)
+OS=linux
+#else ifeq (windows check)
+#	OS=windows
+else
+$(error os seemingly not supported yet)
+endif
+
+ARCH=$(shell uname -m)
+ifeq ($(ARCH),x86_64)
+ARCH=amd64
+else ifeq ($(ARCH),i386)
+ARCH=386
+else ifeq ($(ARCH),amd64)
+else ifeq ($(ARCH),386)
+else
+$(error arch seemingly not supported yet.)
+endif
+
+
 all: build
 
 deps:
@@ -5,18 +29,11 @@ deps:
 
 build:
 	go build
-	cd data && go build
+	cd data && go build && cd ..
+	cp data/data platforms/$(OS)_$(ARCH)/data
 
 install: build
 	go install
-	cd data && go install
-
-pkg:
-	go build
-	go install
-
-tool:
-	cd data && go build
 	cd data && go install
 
 watch:
