@@ -186,7 +186,7 @@ func init() {
 	// expand ~/
 	usr, err := user.Current()
 	if err != nil {
-		panic("error: user context.")
+		panic("error: user context. " + err.Error())
 	}
 	dir := usr.HomeDir + "/"
 	globalConfigFile = strings.Replace(globalConfigFile, "~/", dir, 1)
