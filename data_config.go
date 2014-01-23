@@ -63,7 +63,7 @@ func configCmd(c *commander.Command, args []string) error {
 	}
 
 	if len(args) == 1 {
-		value, err := configGet(args[0])
+		value, err := ConfigGet(args[0])
 		if err != nil {
 			return err
 		}
@@ -72,7 +72,7 @@ func configCmd(c *commander.Command, args []string) error {
 		return nil
 	}
 
-	return configSet(args[0], args[1])
+	return ConfigSet(args[0], args[1])
 }
 
 func printConfig(c *ConfigFormat) error {
@@ -94,7 +94,7 @@ func configEditor() error {
 	return cmd.Run()
 }
 
-func configGet(key string) (string, error) {
+func ConfigGet(key string) (string, error) {
 	// struct -> map for dynamic walking
 	m := map[interface{}]interface{}{}
 	err := MarshalUnmarshal(Config, &m)
@@ -115,7 +115,7 @@ func configGet(key string) (string, error) {
 	return fmt.Sprintf("%s", cursor), nil
 }
 
-func configSet(key string, value string) error {
+func ConfigSet(key string, value string) error {
 	// struct -> map for dynamic walking
 	m := map[interface{}]interface{}{}
 	if err := MarshalUnmarshal(Config, &m); err != nil {

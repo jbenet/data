@@ -178,10 +178,10 @@ func userAddCmd(c *commander.Command, args []string) error {
 func userAuthCmd(c *commander.Command, args []string) error {
 	// clear flag? sign out
 	if c.Flag.Lookup("clear").Value.Get().(bool) {
-		if err := configSet("index.datadex.user", ""); err != nil {
+		if err := ConfigSet("index.datadex.user", ""); err != nil {
 			return err
 		}
-		if err := configSet("index.datadex.token", ""); err != nil {
+		if err := ConfigSet("index.datadex.token", ""); err != nil {
 			return err
 		}
 		pOut("Signed out.\n")
@@ -396,11 +396,11 @@ func (i *UserIndex) Auth(pass string) error {
 		return fmt.Errorf("Invalid token received %s", token)
 	}
 
-	if err := configSet("index.datadex.user", i.User); err != nil {
+	if err := ConfigSet("index.datadex.user", i.User); err != nil {
 		return fmt.Errorf("Error setting user. %s", err)
 	}
 
-	if err := configSet("index.datadex.token", token); err != nil {
+	if err := ConfigSet("index.datadex.token", token); err != nil {
 		return fmt.Errorf("Error setting token. %s", err)
 	}
 
