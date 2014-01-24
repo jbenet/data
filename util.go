@@ -52,8 +52,8 @@ func TimeAgo(s string) string {
 // Version comparison function
 func VersionLess(i, j string) bool {
 	// attempt to use semver
-	vi, erri := semver.FromString(i)
-	vj, errj := semver.FromString(j)
+	vi, erri := semver.New(i)
+	vj, errj := semver.New(j)
 	if erri == nil && errj == nil {
 		return vi.LessThan(vj)
 	}
