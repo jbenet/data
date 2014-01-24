@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"crypto/sha1"
 	"fmt"
+	"github.com/aeden/go-semver"
 	"github.com/dotcloud/docker/pkg/term"
 	"github.com/xeonx/timeago"
 	"io"
@@ -46,6 +47,23 @@ func dOut(format string, a ...interface{}) {
 func TimeAgo(s string) string {
 	t, _ := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", s)
 	return timeago.English.Format(t)
+}
+
+// Version comparison function
+func VersionLess(i, j string) bool {
+	// attempt to use semver
+	vi, erri := semver.FromString(i)
+	vj, errj := semver.FromString(j)
+	if erri == nil && errj == nil {
+		return vi.LessThan(vj)
+	}
+
+	// Nope. Compare lexicographically. Gross.
+	// (There should perhaps be a looser, semver-like comparison,
+	// which attempts to compare any number of dot-separated ints.
+	// Semver expects three exactly, but perhaps we want to compare
+	// "1.8" < "1.10"
+	return i < j
 }
 
 // Checks whether string is a hash (sha1)
