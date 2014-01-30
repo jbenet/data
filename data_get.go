@@ -71,7 +71,7 @@ func getCmd(c *commander.Command, args []string) error {
 	}
 
 	// If many, Installation Summary
-	pOut("---------\n")
+	pErr("---------\n")
 	for _, ds := range datasets {
 		err := installedDatasetMessage(ds)
 		if err != nil {
@@ -99,7 +99,7 @@ func GetDatasetFromIndex(h *Handle) error {
 		return err
 	}
 
-	pOut("Downloading %s from %s.\n", h.Dataset(), mainIndexName)
+	pErr("Downloading %s from %s.\n", h.Dataset(), mainIndexName)
 
 	// Prepare local directories
 	dir := path.Join(DatasetDir, h.Path())
@@ -138,7 +138,7 @@ func GetDatasetFromIndex(h *Handle) error {
 		return err
 	}
 
-	pOut("\n")
+	pErr("\n")
 	return nil
 }
 

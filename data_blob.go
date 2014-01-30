@@ -363,7 +363,7 @@ func getBlobs(blobs blobPaths) error {
 
 		// copy what we got to others
 		for _, path := range paths[1:] {
-			pOut("copy blob %.7s %s\n", hash, path)
+			pErr("copy blob %.7s %s\n", hash, path)
 			err := copyFile(paths[0], path)
 			if err != nil {
 				return err
@@ -384,7 +384,7 @@ func urlBlobs(blobs blobPaths) error {
 	}
 
 	for _, hash := range blobs {
-		pOut("%v\n", dataIndex.urlBlob(hash))
+		pErr("%v\n", dataIndex.urlBlob(hash))
 	}
 
 	return nil
@@ -422,7 +422,7 @@ func checkBlob(oldHash string, fpath string) (bool, error) {
 		switch err.(type) {
 		case *os.PathError:
 			// non existent files count as not hashing correctly.
-			pOut(mfmt, oldHash, fpath, "FAIL - not found\n")
+			pErr(mfmt, oldHash, fpath, "FAIL - not found\n")
 			return false, nil
 		default:
 			return false, err
@@ -430,7 +430,7 @@ func checkBlob(oldHash string, fpath string) (bool, error) {
 	}
 
 	if newHash != oldHash {
-		pOut(mfmt, oldHash, fpath, "FAIL\n")
+		pErr(mfmt, oldHash, fpath, "FAIL\n")
 		return false, nil
 	}
 
@@ -456,7 +456,7 @@ func (i *DataIndex) putBlob(hash string, fpath string) error {
 	}
 
 	if exists {
-		pOut("put blob %.7s %s - exists\n", hash, fpath)
+		pErr("put blob %.7s %s - exists\n", hash, fpath)
 		return nil
 	}
 
@@ -472,7 +472,7 @@ func (i *DataIndex) putBlob(hash string, fpath string) error {
 		return fmt.Errorf(m, fpath, hash, vh)
 	}
 
-	pOut("put blob %.7s %s - uploading\n", hash, fpath)
+	pErr("put blob %.7s %s - uploading\n", hash, fpath)
 
 	f, err := os.Open(fpath)
 	if err != nil {
@@ -504,7 +504,7 @@ func (i *DataIndex) getBlob(hash string, fpath string) error {
 
 	fpath = path.Clean(fpath)
 
-	pOut("get blob %.7s %s\n", hash, fpath)
+	pErr("get blob %.7s %s\n", hash, fpath)
 	w, err := os.Create(fpath)
 	if err != nil {
 		return err

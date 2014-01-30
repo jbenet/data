@@ -287,7 +287,7 @@ func NewManifestWithRef(ref string) (*Manifest, error) {
 }
 
 func (mf *Manifest) Generate() error {
-	pOut("Generating Manifest file...\n")
+	pErr("Generating Manifest file...\n")
 
 	// add new files to manifest file
 	// (for now add everything. `data manifest {add,rm}` in future)
@@ -319,9 +319,9 @@ func (mf *Manifest) Generate() error {
 			return nil
 		}
 
-		pOut("Warning: no files in directory. Manifest is empty.\n")
+		pErr("Warning: no files in directory. Manifest is empty.\n")
 	} else {
-		pOut("%d files in Manifest.\n", len(mf.Files))
+		pErr("%d files in Manifest.\n", len(mf.Files))
 	}
 
 	return nil
@@ -350,7 +350,7 @@ func (mf *Manifest) Add(path string) error {
 		return err
 	}
 
-	pOut("data manifest: added %s\n", path)
+	pErr("data manifest: added %s\n", path)
 	return nil
 }
 
@@ -369,7 +369,7 @@ func (mf *Manifest) Remove(path string) error {
 		return err
 	}
 
-	pOut("data manifest: removed %s\n", path)
+	pErr("data manifest: removed %s\n", path)
 	return nil
 }
 
@@ -387,7 +387,7 @@ func (mf *Manifest) Hash(path string) error {
 		return err
 	}
 
-	pOut("data manifest: hashed %.7s %s\n", h, path)
+	pErr("data manifest: hashed %.7s %s\n", h, path)
 	return nil
 }
 
@@ -404,7 +404,7 @@ func (mf *Manifest) Check(path string) (bool, error) {
 		switch err.(type) {
 		case *os.PathError:
 			// non existent files count as not hashing correctly.
-			pOut(mfmt, oldHash, path, "FAIL - not found\n")
+			pErr(mfmt, oldHash, path, "FAIL - not found\n")
 			return false, nil
 		default:
 			return false, err
@@ -412,7 +412,7 @@ func (mf *Manifest) Check(path string) (bool, error) {
 	}
 
 	if newHash != oldHash {
-		pOut(mfmt, oldHash, path, "FAIL\n")
+		pErr(mfmt, oldHash, path, "FAIL\n")
 		return false, nil
 	}
 

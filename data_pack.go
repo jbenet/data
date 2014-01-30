@@ -242,7 +242,7 @@ func packCheckCmd(c *commander.Command, args []string) error {
 	}
 
 	if !p.manifest.Complete() {
-		pOut("Warning: manifest incomplete. Checksums may be incorrect.")
+		pErr("Warning: manifest incomplete. Checksums may be incorrect.")
 	}
 
 	failures := 0
