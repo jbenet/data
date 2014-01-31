@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gonuts/flag"
 	"github.com/jbenet/commander"
+	"io"
 	"os"
 	"os/exec"
 	"os/user"
@@ -51,7 +52,7 @@ func init() {
 
 func configCmd(c *commander.Command, args []string) error {
 	if c.Flag.Lookup("show").Value.Get().(bool) {
-		return printConfig(Config)
+		return printConfig(&Config)
 	}
 
 	if c.Flag.Lookup("edit").Value.Get().(bool) {
@@ -68,7 +69,11 @@ func configCmd(c *commander.Command, args []string) error {
 			return err
 		}
 
-		pOut("%s\n", value)
+		m, err := Marshal(value)
+		if err != nil {
+			return err
+		}
+		io.Copy(os.Stdout, m)
 		return nil
 	}
 
@@ -77,7 +82,7 @@ func configCmd(c *commander.Command, args []string) error {
 
 func printConfig(c *ConfigFormat) error {
 	f, _ := NewConfigfile("")
-	f.ConfigFormat = *c
+	f.Config = *c
 	return f.Write(os.Stdout)
 }
 
@@ -94,7 +99,16 @@ func configEditor() error {
 	return cmd.Run()
 }
 
-func ConfigGet(key string) (string, error) {
+func ConfigGetString(key string) (string, error) {
+	// struct -> map for dynamic walking
+	cr, err := ConfigGet(key)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s", cr), nil
+}
+
+func ConfigGet(key string) (interface{}, error) {
 	// struct -> map for dynamic walking
 	m := map[interface{}]interface{}{}
 	err := MarshalUnmarshal(Config, &m)
@@ -112,7 +126,7 @@ func ConfigGet(key string) (string, error) {
 		}
 	}
 
-	return fmt.Sprintf("%s", cursor), nil
+	return cursor, nil
 }
 
 func ConfigSet(key string, value string) error {
@@ -147,21 +161,23 @@ func ConfigSet(key string, value string) error {
 		return fmt.Errorf("error serializing config: %s", err)
 	}
 
-	return WriteConfigFile(globalConfigFile, Config)
+	return WriteConfigFile(globalConfigFile, &Config)
 }
 
 var globalConfigFile = "~/.dataconfig"
 
-type ConfigFormat struct {
-	Index map[string]*struct {
-		Url      string
-		User     string
-		Token    string
-		Disabled bool ",omitempty"
-	}
-}
+// type ConfigFormat struct {
+// 	Index map[string]*struct {
+// 		Url      string
+// 		User     string
+// 		Token    string
+// 		Disabled bool ",omitempty"
+// 	}
+// }
 
-var Config = &ConfigFormat{}
+type ConfigFormat map[string]interface{}
+
+var Config = ConfigFormat{}
 
 // var DefaultConfigText = `[index "datadex.io:8080"]
 // user =
@@ -180,7 +196,7 @@ func init() {
 	// alt config file path
 	if cf := os.Getenv("DATA_CONFIG"); len(cf) > 0 {
 		globalConfigFile = cf
-		pOut("Using config file path: %s\n", globalConfigFile)
+		pErr("Using config file path: %s\n", globalConfigFile)
 	}
 
 	// expand ~/
@@ -198,11 +214,11 @@ func init() {
 			panic("error: failed to write config " + globalConfigFile +
 				". " + err.Error())
 		}
-		pOut("Wrote new config file: %s\n", globalConfigFile)
+		pErr("Wrote new config file: %s\n", globalConfigFile)
 	}
 
 	// load config
-	err = ReadConfigFile(globalConfigFile, Config)
+	err = ReadConfigFile(globalConfigFile, &Config)
 	if err != nil {
 		panic("error: failed to load config " + globalConfigFile +
 			". " + err.Error())
@@ -223,7 +239,7 @@ func WriteConfigFile(filename string, fmt *ConfigFormat) error {
 	// return gcfg.WriteFile(fmt, filename)
 
 	f, _ := NewConfigfile(filename)
-	f.ConfigFormat = *fmt
+	f.Config = *fmt
 	return f.WriteFile()
 }
 
@@ -235,19 +251,20 @@ func ReadConfigFile(filename string, fmt *ConfigFormat) error {
 		return err
 	}
 
-	*fmt = f.ConfigFormat
+	*fmt = f.Config
 	return nil
 }
 
 // for use with YAML-based config
 type Configfile struct {
 	SerializedFile "-"
-	ConfigFormat   ",inline"
+	Config         ConfigFormat ""
 }
 
 func NewConfigfile(path string) (*Configfile, error) {
 	f := &Configfile{SerializedFile: SerializedFile{Path: path}}
-	f.SerializedFile.Format = f
+	f.Config = ConfigFormat{}
+	f.SerializedFile.Format = &f.Config
 
 	if len(path) > 0 {
 		err := f.ReadFile()
@@ -262,10 +279,24 @@ func NewConfigfile(path string) (*Configfile, error) {
 const AnonymousUser = "anonymous"
 
 func configUser() string {
-	if Config.Index[mainIndexName] == nil {
-		return AnonymousUser
+	val, _ := ConfigGetString(fmt.Sprintf("index.%s.user", mainIndexName))
+	return val
+}
+
+func configGetIndex(name string) (map[string]string, error) {
+	idx_raw, err := ConfigGet("index." + name)
+	if err != nil {
+		return nil, err
 	}
-	return Config.Index[mainIndexName].User
+	idx, ok := idx_raw.(map[interface{}]interface{})
+	if idx_raw == nil || !ok {
+		return nil, fmt.Errorf("Config error: invalid index.%s", name)
+	}
+	sidx := map[string]string{}
+	for k, v := range idx {
+		sidx[k.(string)] = fmt.Sprintf("%s", v)
+	}
+	return sidx, nil
 }
 
 func isNamedUser(user string) bool {

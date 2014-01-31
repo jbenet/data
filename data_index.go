@@ -58,15 +58,15 @@ type HttpClient struct {
 }
 
 func NewHttpClient() (*HttpClient, error) {
-	i, exists := Config.Index[mainIndexName]
-	if !exists {
-		return nil, fmt.Errorf("Config error: no datadex index.")
+	i, err := configGetIndex(mainIndexName)
+	if err != nil {
+		return nil, err
 	}
 
 	h := &HttpClient{
-		Url:       strings.ToLower(i.Url),
-		User:      i.User,
-		AuthToken: i.Token,
+		Url:       strings.ToLower(i["url"]),
+		User:      i["user"],
+		AuthToken: i["token"],
 	}
 
 	// ensure url has protocol prefix
