@@ -64,9 +64,9 @@ func configCmd(c *commander.Command, args []string) error {
 	}
 
 	if len(args) == 1 {
-		value, err := ConfigGet(args[0])
-		if err != nil {
-			return err
+		value := ConfigGet(args[0])
+		if value == nil {
+			return fmt.Errorf("") // empty string prints out nothing.
 		}
 
 		m, err := Marshal(value)
@@ -99,21 +99,21 @@ func configEditor() error {
 	return cmd.Run()
 }
 
-func ConfigGetString(key string) (string, error) {
-	// struct -> map for dynamic walking
-	cr, err := ConfigGet(key)
-	if err != nil {
-		return "", err
+func ConfigGetString(key string, default_ string) string {
+	val := ConfigGet(key)
+	if val == nil {
+		return default_
 	}
-	return fmt.Sprintf("%s", cr), nil
+	return fmt.Sprintf("%s", val)
 }
 
-func ConfigGet(key string) (interface{}, error) {
+func ConfigGet(key string) interface{} {
 	// struct -> map for dynamic walking
 	m := map[interface{}]interface{}{}
 	err := MarshalUnmarshal(Config, &m)
 	if err != nil {
-		return "", fmt.Errorf("error serializing config: %s", err)
+		pErr("data config: error serializing: %s", err)
+		return nil
 	}
 
 	var cursor interface{}
@@ -122,11 +122,11 @@ func ConfigGet(key string) (interface{}, error) {
 	for _, part := range strings.Split(key, ".") {
 		cursor, exists = cursor.(map[interface{}]interface{})[part]
 		if !exists {
-			return "", fmt.Errorf("") // empty error prints out nothing.
+			return nil
 		}
 	}
 
-	return cursor, nil
+	return cursor
 }
 
 func ConfigSet(key string, value string) error {
@@ -279,15 +279,11 @@ func NewConfigfile(path string) (*Configfile, error) {
 const AnonymousUser = "anonymous"
 
 func configUser() string {
-	val, _ := ConfigGetString(fmt.Sprintf("index.%s.user", mainIndexName))
-	return val
+	return ConfigGetString(fmt.Sprintf("index.%s.user", mainIndexName), "")
 }
 
 func configGetIndex(name string) (map[string]string, error) {
-	idx_raw, err := ConfigGet("index." + name)
-	if err != nil {
-		return nil, err
-	}
+	idx_raw := ConfigGet("index." + name)
 	idx, ok := idx_raw.(map[interface{}]interface{})
 	if idx_raw == nil || !ok {
 		return nil, fmt.Errorf("Config error: invalid index.%s", name)
