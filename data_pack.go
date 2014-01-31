@@ -320,12 +320,9 @@ func (p *Pack) Make(clean bool) error {
 
 	// fill out default website
 	if len(p.datafile.Website) == 0 {
-		dataIndex, err := NewMainDataIndex()
-		if err == nil {
-			h := p.datafile.Handle()
-			p.datafile.Website = dataIndex.Http.Url + "/" + h.Path()
-			p.datafile.WriteFile() // ignore error. best effort.
-		}
+		h := p.datafile.Handle()
+		p.datafile.Website = "http://datadex.io/" + h.Dataset()
+		p.datafile.WriteFile() // ignore error. best effort.
 	}
 
 	// generate manifest
