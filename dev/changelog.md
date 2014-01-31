@@ -1,5 +1,12 @@
 # data changelog
 
+## v0.1.1 2014-02-
+
+
+- data config flexibility
+- semver support
+
+
 ## v0.1.0 2014-01-21
 
 First preview (alpha)
