@@ -438,6 +438,17 @@ func (mf *Manifest) HashForPath(path string) string {
 	return ""
 }
 
+func (mf *Manifest) HashForPathCaseInsensitive(path string) string {
+	path = strings.ToLower(path)
+	for opath, h := range mf.Files {
+		opath = strings.ToLower(opath)
+		if opath == path {
+			return h
+		}
+	}
+	return ""
+}
+
 func (mf *Manifest) AllPaths() []string {
 	l := []string{}
 	for p, _ := range mf.Files {
