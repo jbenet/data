@@ -38,6 +38,7 @@ type datafileContents struct {
 	Repository   string   ",omitempty"
 	Website      string   ",omitempty"
 	License      string   ",omitempty"
+	Authors      []string ",omitempty"
 	Contributors []string ",omitempty"
 	Sources      []string ",omitempty"
 }
