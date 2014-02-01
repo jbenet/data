@@ -7,6 +7,7 @@ all: pkg
 # for now, amd64. lipo both together later.
 BIN=../../darwin_amd64/data
 VERSION=$(shell $(BIN) version --number)
+PKGNAME=data-v$(VERSION)-OSX-Installer
 
 # setup the package contents
 root: root/usr/bin/data
@@ -24,18 +25,16 @@ data.pkg: root root/usr/bin/data
 		--ownership recommended \
 		data.pkg
 
-Install\ data.pkg: data.pkg
+$(PKGNAME).pkg: data.pkg
 	productbuild \
 		--distribution distribution.xml \
 		--resources resources \
 		--package-path data.pkg \
 		--version $(VERSION) \
-		Install\ data.pkg
+		$(PKGNAME).pkg
 
-pkg: Install\ data.pkg
-
+pkg: $(PKGNAME).pkg
 
 clean:
 	rm -rf -- root/
-	rm -f -- data.pkg
-	rm -f -- Install\ data.pkg
+	rm -f -- *.pkg
