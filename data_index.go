@@ -30,7 +30,7 @@ func NewMainDataIndex() (*DataIndex, error) {
 	i := &DataIndex{}
 	err := error(nil)
 
-	i.Http, err = NewHttpClient()
+	i.Http, err = NewHttpClient(mainIndexName)
 	if err != nil {
 		return nil, err
 	}
@@ -57,8 +57,8 @@ type HttpClient struct {
 	AuthToken string
 }
 
-func NewHttpClient() (*HttpClient, error) {
-	i, err := configGetIndex(mainIndexName)
+func NewHttpClient(index string) (*HttpClient, error) {
+	i, err := configGetIndex(index)
 	if err != nil {
 		return nil, err
 	}
