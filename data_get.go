@@ -9,22 +9,21 @@ import (
 )
 
 var cmd_data_get = &commander.Command{
-	UsageLine: "get [<dataset>|<url>]",
+	UsageLine: "get [<dataset>]",
 	Short:     "Download and install dataset.",
 	Long: `data get - Download and install dataset.
 
     Downloads the dataset specified, and installs its files into the
-    current dataset working directory.
+    current dataset working directory. The dataset argument is a Handle
+    of the form:
 
-    The dataset argument can be any of:
+        <author>/<name>[@<version>].
 
-    HANDLE: Handle of the form <author>/<name>[.<fmt>][@<ref>].
-            Looks up handle on the specified (default) datadex.
+    For example:
 
-    URL:    Direct url to any dataset on any datadex. (TODO)
-
-    PATH:   Filesystem path to any locally installed dataset. (TODO)
-
+        jbenet/foo
+        jbenet/foo@latest
+        jbenet/foo@1.0
 
     Loosely, data-get's process is:
 
