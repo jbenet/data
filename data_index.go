@@ -9,6 +9,7 @@ import (
 )
 
 type DataIndex struct {
+	Name string
 	Http *HttpClient
 
 	// For now, use S3Store directly. clean up interface later.
@@ -27,10 +28,10 @@ func NewMainDataIndex() (*DataIndex, error) {
 		return mainDataIndex, nil
 	}
 
-	i := &DataIndex{}
+	i := &DataIndex{Name: mainIndexName}
 	err := error(nil)
 
-	i.Http, err = NewHttpClient(mainIndexName)
+	i.Http, err = NewHttpClient(i.Name)
 	if err != nil {
 		return nil, err
 	}

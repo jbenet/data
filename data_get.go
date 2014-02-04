@@ -99,7 +99,7 @@ func GetDatasetFromIndex(h *Handle) error {
 		return err
 	}
 
-	pErr("Downloading %s from %s.\n", h.Dataset(), mainIndexName)
+	pErr("Downloading %s from %s (%s).\n", h.Dataset(), di.Name, di.Http.Url)
 
 	// Prepare local directories
 	dir := path.Join(DatasetDir, h.Path())
@@ -151,7 +151,10 @@ func (d *DataIndex) downloadManifest(h *Handle) error {
 	ri := d.RefIndex(h.Path())
 	ref, err := ri.VersionRef(v)
 	if err != nil {
-		return fmt.Errorf("Error finding version %s. %s", v, err)
+		if strings.Contains(err.Error(), "404 page not found") {
+			return fmt.Errorf("Error: %v not found.", h.Dataset())
+		}
+		return fmt.Errorf("Error finding manifest for %v. %s", h.Dataset(), err)
 	}
 
 	err = d.getBlob(ref, ManifestFileName)
