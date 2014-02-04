@@ -271,11 +271,7 @@ func createFile(filename string) (*os.File, error) {
 		return nil, err
 	}
 
-	file, err := os.Create(filename)
-	if err != nil {
-		return nil, err
-	}
-	return file, err
+	return os.Create(filename)
 }
 
 // Extraction

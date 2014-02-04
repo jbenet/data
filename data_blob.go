@@ -505,7 +505,7 @@ func (i *DataIndex) getBlob(hash string, fpath string) error {
 	fpath = path.Clean(fpath)
 
 	pErr("get blob %.7s %s\n", hash, fpath)
-	w, err := os.Create(fpath)
+	w, err := createFile(fpath)
 	if err != nil {
 		return err
 	}
