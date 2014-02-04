@@ -101,6 +101,12 @@ func GetDatasetFromIndex(h *Handle) error {
 
 	pErr("Downloading %s from %s (%s).\n", h.Dataset(), di.Name, di.Http.Url)
 
+	// Get manifest ref
+	mref, err := di.handleRef(h)
+	if err != nil {
+		return err
+	}
+
 	// Prepare local directories
 	dir := path.Join(DatasetDir, h.Path())
 	if err := os.RemoveAll(dir); err != nil {
@@ -124,7 +130,7 @@ func GetDatasetFromIndex(h *Handle) error {
 	defer os.Chdir(cwd)
 
 	// download manifest
-	if err := di.downloadManifest(h); err != nil {
+	if err := downloadManifest(di, mref); err != nil {
 		return err
 	}
 
@@ -142,7 +148,7 @@ func GetDatasetFromIndex(h *Handle) error {
 	return nil
 }
 
-func (d *DataIndex) downloadManifest(h *Handle) error {
+func (d *DataIndex) handleRef(h *Handle) (string, error) {
 	v := h.Version
 	if len(v) == 0 {
 		v = RefLatest
@@ -152,17 +158,16 @@ func (d *DataIndex) downloadManifest(h *Handle) error {
 	ref, err := ri.VersionRef(v)
 	if err != nil {
 		if strings.Contains(err.Error(), "404 page not found") {
-			return fmt.Errorf("Error: %v not found.", h.Dataset())
+			return "", fmt.Errorf("Error: %v not found.", h.Dataset())
 		}
-		return fmt.Errorf("Error finding manifest for %v. %s", h.Dataset(), err)
+		return "", fmt.Errorf("Error finding manifest for %v. %s", h.Dataset(), err)
 	}
 
-	err = d.getBlob(ref, ManifestFileName)
-	if err != nil {
-		return err
-	}
+	return ref, nil
+}
 
-	return nil
+func downloadManifest(d *DataIndex, ref string) error {
+	return d.getBlob(ref, ManifestFileName)
 }
 
 func installedDatasetMessage(dataset string) error {
