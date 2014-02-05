@@ -29,9 +29,9 @@ Vagrant.configure("2") do |config|
     ln -s go/src/github.com/jbenet/data /home/vagrant/data
 
     # setup go workspace
-    echo "export GOROOT=/usr/local/go" >> /home/vagrant/.bashrc
-    echo "export GOPATH=/home/vagrant/go" >> /home/vagrant/.bashrc
-    echo "export PATH=\\$PATH:\\$GOROOT/bin:\\$GOPATH/bin"  >> /home/vagrant/.bashrc
+    echo "export GOROOT=/usr/local/go" >> /home/vagrant/.bash_profile
+    echo "export GOPATH=/home/vagrant/go" >> /home/vagrant/.bash_profile
+    echo "export PATH=\\$PATH:\\$GOROOT/bin:\\$GOPATH/bin"  >> /home/vagrant/.bash_profile
 
   eos
 
