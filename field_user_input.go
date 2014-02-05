@@ -70,7 +70,7 @@ func fillOutDatafile(df *Datafile) error {
 	}
 
 	for _, field := range fields {
-		err := fillOutDatafileField(field)
+		err := fillOutField(field)
 		if err != nil {
 			return err
 		}
@@ -87,7 +87,7 @@ func fillOutDatafile(df *Datafile) error {
 	return nil
 }
 
-func fillOutDatafileField(f InputField) error {
+func fillOutField(f InputField) error {
 
 	// validator function
 	valid := func(val string) bool {
@@ -134,45 +134,20 @@ func fillOutDatafileField(f InputField) error {
 func fillOutUserProfile(p *UserProfile) error {
 	pOut("Editing user profile. [Current value].\n")
 
-	fields := map[string]*string{
-		"Full Name": &p.Name,
+	fields := []InputField{
+		InputField{"Full Name", &p.Name, nil, ""},
 		// "Email (required)":            &p.Email,
-		"Website Url":      &p.Website,
-		"Github username":  &p.Github,
-		"Twitter username": &p.Twitter,
+		InputField{"Website Url", &p.Website, nil, ""},
+		InputField{"Github username", &p.Github, nil, ""},
+		InputField{"Twitter username", &p.Twitter, nil, ""},
 	}
 
-	for p, f := range fields {
-		err := fillOutUserProfileField(p, f)
+	for _, f := range fields {
+		err := fillOutField(f)
 		if err != nil {
 			return err
 		}
 	}
 
-	return nil
-}
-
-func fillOutUserProfileField(prompt string, field *string) error {
-	first := true
-	for len(*field) < 1 || first {
-		first = false
-
-		pOut("%s: [%s] ", prompt, *field)
-		line, err := readInput()
-		if err != nil {
-			return err
-		}
-
-		if len(line) > 0 {
-			*field = line
-		}
-
-		// if not required, don't loop
-		if !strings.Contains(prompt, "required") {
-			break
-		}
-	}
-
-	dOut("entered: %s\n", *field)
 	return nil
 }
