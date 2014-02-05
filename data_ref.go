@@ -187,6 +187,7 @@ func (h *HttpRefIndex) SortedPublished() []string {
 func (d *DataIndex) RefIndex(dataset string) *HttpRefIndex {
 	ri := &HttpRefIndex{
 		Http: &HttpClient{
+			BaseUrl:   d.Http.BaseUrl,
 			Url:       d.Http.Url + "/" + dataset + "/" + "refs",
 			User:      d.Http.User,
 			AuthToken: d.Http.AuthToken,

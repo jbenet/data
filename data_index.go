@@ -53,6 +53,7 @@ const ApiUrlSuffix = "/api/v1"
 
 // Controls authenticated http accesses.
 type HttpClient struct {
+	BaseUrl   string
 	Url       string
 	User      string
 	AuthToken string
@@ -65,16 +66,17 @@ func NewHttpClient(index string) (*HttpClient, error) {
 	}
 
 	h := &HttpClient{
-		Url:       strings.ToLower(i["url"]),
+		BaseUrl:   strings.ToLower(i["url"]),
 		User:      i["user"],
 		AuthToken: i["token"],
 	}
 
 	// ensure url has protocol prefix
-	if !strings.HasPrefix(h.Url, "http://") &&
-		!strings.HasPrefix(h.Url, "https://") {
-		h.Url = "http://" + h.Url
+	if !strings.HasPrefix(h.BaseUrl, "http://") &&
+		!strings.HasPrefix(h.BaseUrl, "https://") {
+		h.BaseUrl = "http://" + h.BaseUrl
 	}
+	h.Url = h.BaseUrl
 
 	// ensure url has api suffix
 	if !strings.HasSuffix(strings.ToLower(h.Url), ApiUrlSuffix) {

@@ -458,6 +458,7 @@ func (i *UserIndex) AwsCred() (*AwsCredentials, error) {
 func (d *DataIndex) NewUserIndex(user string) *UserIndex {
 	return &UserIndex{
 		Http: &HttpClient{
+			BaseUrl:   d.Http.BaseUrl,
 			Url:       d.Http.Url + "/" + user + "/" + "user",
 			User:      d.Http.User,
 			AuthToken: d.Http.AuthToken,
