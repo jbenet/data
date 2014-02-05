@@ -13,7 +13,10 @@ BINS=$(addsuffix /data,$(PLATFORMS))
 
 ARCHIVES=$(patsubst %,archives/data-v$(VERSION)-%.tar.gz,$(PLATFORMS))
 
-all: $(ARCHIVES)
+OTHER= \
+	installers/osx/data-v$(VERSION)-OSX-Installer.pkg
+
+all: $(ARCHIVES) $(OTHER)
 
 %s: %s/data
 
@@ -25,13 +28,16 @@ linux_%/data:
 	  vagrant suspend
 
 darwin_%/data:
-	cd ../ && make
+	cd ../ && $(MAKE)
 
 windows_%/data:
 	$(error not implemented)
 
 archives/data-v$(VERSION)-%.tar.gz: %/data
 	./archive.py $(<D) $(VERSION)
+
+installers/osx/data-v$(VERSION)-OSX-Installer.pkg: darwin_amd64/data
+	cd installers/osx && $(MAKE)
 
 bins: $(BINS)
 
