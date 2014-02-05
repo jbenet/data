@@ -10,7 +10,30 @@ var Cmd_data = &commander.Command{
 	UsageLine: "data [<flags>] <command> [<args>]",
 	Short:     "dataset package manager",
 	Long: `data - dataset package manager
-  `,
+
+Basic commands:
+
+    get         Download and install dataset.
+    list        List installed datasets.
+    info        Show dataset information.
+    publish     Guided dataset publishing.
+
+Tool commands:
+
+    version     Show data version information.
+    config      Manage data configuration.
+    user        Manage users and credentials.
+    commands    List all available commands.
+
+Advanced Commands:
+
+    blob        Manage blobs in the blobstore.
+    manifest    Generate and manipulate dataset manifest.
+    pack        Dataset packaging, upload, and download.
+
+Use "data help <command>" for more information about a command.
+`,
+	Run: dataCmd,
 	Subcommands: []*commander.Command{
 		cmd_data_version,
 		cmd_data_config,
@@ -24,6 +47,11 @@ var Cmd_data = &commander.Command{
 		cmd_data_user,
 		cmd_data_commands,
 	},
+}
+
+func dataCmd(c *commander.Command, args []string) error {
+	pOut(c.Long)
+	return nil
 }
 
 var cmd_root *commander.Command
