@@ -43,6 +43,7 @@ func (r DatasetRefs) SortedPublished() []string {
 	return vs
 }
 
+// Resolves a ref. If not found, returns ""
 func (r DatasetRefs) ResolveRef(ref string) string {
 
 	// default to latest (like HEAD)
@@ -56,12 +57,31 @@ func (r DatasetRefs) ResolveRef(ref string) string {
 	}
 
 	// look it up in versions table
-	ref2, found := r.Versions[ref]
-	if found {
+	if ref2, found := r.Versions[ref]; found {
 		return ref2
 	}
 
-	// Guess we have no link, return it then.
+	// Guess we have no link, check it's a published ref.
+	if _, found := r.Published[ref]; found {
+		return ref
+	}
+
+	// Ref not found
+	return ""
+}
+
+// Return the named version for ref, or ref if not found.
+func (r DatasetRefs) ResolveVersion(ref string) string {
+
+	// Resolve ref first.
+	ref = r.ResolveRef(ref)
+
+	// Find version for ref.
+	for v, r := range r.Versions {
+		if r == ref {
+			return v
+		}
+	}
 	return ref
 }
 
@@ -129,17 +149,24 @@ func (h *HttpRefIndex) VersionRef(version string) (string, error) {
 		return "", err
 	}
 
-	// special ref latest
-	if version == RefLatest {
-		refs := h.SortedPublished()
-		if len(refs) == 0 {
-			return "", fmt.Errorf("no published refs")
-		}
-		return refs[len(refs)-1], nil
+	ref := h.Refs.ResolveRef(version)
+	if ref == "" {
+		return ref, fmt.Errorf("No ref for version: %s", version)
+	}
+	return ref, nil
+}
+
+func (h *HttpRefIndex) RefVersion(ref string) (string, error) {
+	err := h.FetchRefs(false)
+	if err != nil {
+		return "", err
 	}
 
-	ref, _ := h.Refs.Versions[version]
-	return ref, nil
+	ver := h.Refs.ResolveVersion(ref)
+	if ver == "" {
+		return ver, fmt.Errorf("No version for ref: %s", ref)
+	}
+	return ver, nil
 }
 
 func (h *HttpRefIndex) RefTimestamp(ref string) (string, error) {
