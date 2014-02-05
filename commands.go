@@ -1,6 +1,7 @@
 package data
 
 import (
+	"github.com/gonuts/flag"
 	"github.com/jbenet/commander"
 	"strings"
 	"time"
@@ -47,6 +48,7 @@ Use "data help <command>" for more information about a command.
 		cmd_data_user,
 		cmd_data_commands,
 	},
+	Flag: *flag.NewFlagSet("data", flag.ExitOnError),
 }
 
 func dataCmd(c *commander.Command, args []string) error {
