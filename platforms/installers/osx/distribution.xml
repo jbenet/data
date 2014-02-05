@@ -2,7 +2,8 @@
 <installer-gui-script minSpecVersion="1">
     <title>data -- dataset package manager</title>
     <organization>io.datadex</organization>
-    <domains enable_localSystem="true"/>
+    <!-- <domains enable_anywhere="false" enable_currentUserHome="false" enable_localSystem="true"/> -->
+    <options rootVolumeOnly="true"/>
     <options customize="never" require-scripts="true" rootVolumeOnly="true" />
     <!-- Define documents displayed at various steps -->
     <welcome    file="welcome.html"    mime-type="text/html" />

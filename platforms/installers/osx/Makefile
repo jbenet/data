@@ -25,7 +25,7 @@ data.pkg: root root/usr/bin/data
 		--ownership recommended \
 		data.pkg
 
-$(PKGNAME).pkg: data.pkg
+$(PKGNAME).pkg: data.pkg distribution.xml
 	productbuild \
 		--distribution distribution.xml \
 		--resources resources \
