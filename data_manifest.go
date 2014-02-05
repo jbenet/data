@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-const ManifestFileName = "Manifest"
+const ManifestFileName = ".data/Manifest"
 const noHash = "<to be hashed>"
 
 var cmd_data_manifest = &commander.Command{
