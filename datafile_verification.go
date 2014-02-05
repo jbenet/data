@@ -2,8 +2,16 @@ package data
 
 import (
 	"os"
+	"regexp"
 	"strings"
 )
+
+type InputField struct {
+	Prompt  string
+	Value   *string
+	Pattern *regexp.Regexp
+	Help    string
+}
 
 func ensureDatafileInPath(path string) error {
 	_, err := os.Stat(path)
@@ -37,17 +45,32 @@ func fillOutDatafile(df *Datafile) error {
 	pOut("Verifying Datafile fields...\n")
 
 	h := df.Handle()
-	fields := map[string]*string{
-		"author id (required)":           &h.Author,
-		"dataset id (required)":          &h.Name,
-		"dataset version (required)":     &h.Version,
-		"tagline description (required)": &df.Tagline,
-		"long description (optional)":    &df.Description,
-		"license name (optional)":        &df.License,
+	fields := []InputField{
+		InputField{
+			"author id (required)",
+			&h.Author,
+			UserRegexp,
+			"Must be a valid username. Can only contain [a-z0-9-_.].",
+		},
+		InputField{
+			"dataset id (required)",
+			&h.Name,
+			IdentRegexp,
+			"Must be a valid dataset id. Can only contain [a-z0-9-_.].",
+		},
+		InputField{
+			"dataset version (required)",
+			&h.Version,
+			IdentRegexp,
+			"Must be a valid version. Can only contain [a-z0-9-_.].",
+		},
+		InputField{"tagline description (required)", &df.Tagline, nil, ""},
+		InputField{"long description (optional)", &df.Description, nil, ""},
+		InputField{"license name (optional)", &df.License, nil, ""},
 	}
 
-	for p, f := range fields {
-		err := fillOutDatafileField(p, f)
+	for _, field := range fields {
+		err := fillOutDatafileField(field)
 		if err != nil {
 			return err
 		}
@@ -64,28 +87,47 @@ func fillOutDatafile(df *Datafile) error {
 	return nil
 }
 
-func fillOutDatafileField(prompt string, field *string) error {
-	first := true
-	for len(*field) < 1 || first {
-		first = false
+func fillOutDatafileField(f InputField) error {
 
-		pOut("Enter %s [%s]: ", prompt, *field)
+	// validator function
+	valid := func(val string) bool {
+		if strings.Contains(f.Prompt, "required") && len(val) < 1 {
+			return false
+		}
+
+		if f.Pattern != nil && !f.Pattern.MatchString(val) {
+			return false
+		}
+
+		return true
+	}
+
+	for {
+		pOut("Enter %s [%s]: ", f.Prompt, *f.Value)
 		line, err := readInput()
 		if err != nil {
 			return err
 		}
 
-		if len(line) > 0 {
-			*field = line
+		// if not required, and entered nothing, get out.
+		if len(line) == 0 && valid(*f.Value) {
+			break
 		}
 
-		// if not required, don't loop
-		if !strings.Contains(prompt, "required") {
+		// if valid input
+		if valid(line) {
+			*f.Value = line
 			break
+		}
+
+		if len(f.Help) > 0 {
+			pOut("	Error: %s\n", f.Help)
+		} else {
+			pOut("	Error: Invalid input.\n")
 		}
 	}
 
-	dOut("entered: %s\n", *field)
+	dOut("entered: %s\n", *f.Value)
 	return nil
 }
 
