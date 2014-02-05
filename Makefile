@@ -44,3 +44,6 @@ watch:
 	# for portability, use watchmedo -- pip install watchmedo
 	@watchmedo shell-command --patterns="*.go;" --recursive \
 		--command='make install' .
+
+dist:
+	cd platforms && $(MAKE)
