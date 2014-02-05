@@ -453,6 +453,7 @@ func (p *Pack) Publish(force bool) error {
 	}
 
 	pOut("data pack: published %s (%.7s).\n", h.Dataset(), mfh)
+	pOut("Webpage at %s/%s\n", p.index.Http.BaseUrl, h.Dataset())
 	return nil
 }
 

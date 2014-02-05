@@ -42,12 +42,13 @@ func fillOutDatafileInPath(path string) error {
 }
 
 func fillOutDatafile(df *Datafile) error {
-	pOut("Verifying Datafile fields...\n")
+	pOut("Writing Datafile fields...\n")
+	pOut("'Field description [current value]'\n")
 
 	h := df.Handle()
 	fields := []InputField{
 		InputField{
-			"author id (required)",
+			"owner id (required)",
 			&h.Author,
 			UserRegexp,
 			"Must be a valid username. Can only contain [a-z0-9-_.].",
@@ -64,7 +65,9 @@ func fillOutDatafile(df *Datafile) error {
 			IdentRegexp,
 			"Must be a valid version. Can only contain [a-z0-9-_.].",
 		},
-		InputField{"tagline description (required)", &df.Tagline, nil, ""},
+		InputField{"tagline description (required)", &df.Tagline, nil,
+			`A tagline is required to describe your package to others.
+               Good taglines are like titles: short, descriptive phrases.`},
 		InputField{"long description (optional)", &df.Description, nil, ""},
 		InputField{"license name (optional)", &df.License, nil, ""},
 	}
