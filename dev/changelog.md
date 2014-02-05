@@ -2,7 +2,9 @@
 
 ## v0.1.1 2014-02-
 
-
+- data get: install path is handle
+- data get: no littering if not found
+- data blob: creates dir(path)
 - data config flexibility
 - semver support
 
