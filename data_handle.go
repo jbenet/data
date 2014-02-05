@@ -54,6 +54,10 @@ func (d *Handle) Path() string {
 	return path.Join(d.Author, d.Name)
 }
 
+func (d *Handle) InstallPath() string {
+	return path.Join(DatasetDir, d.Dataset())
+}
+
 // order: rsplit @, split /, rsplit .
 func (d *Handle) SetDataset(s string) {
 	// no / is invalid

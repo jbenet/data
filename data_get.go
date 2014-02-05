@@ -58,11 +58,13 @@ func getCmd(c *commander.Command, args []string) error {
 			"argument, or add dependencies in a Datafile.", c.FullName())
 	}
 
+	installed_datasets := []string{}
 	for _, ds := range datasets {
-		err := GetDataset(ds)
+		ds, err := GetDataset(ds)
 		if err != nil {
 			return err
 		}
+		installed_datasets = append(installed_datasets, ds)
 	}
 
 	if len(datasets) == 0 {
@@ -71,7 +73,7 @@ func getCmd(c *commander.Command, args []string) error {
 
 	// If many, Installation Summary
 	pErr("---------\n")
-	for _, ds := range datasets {
+	for _, ds := range installed_datasets {
 		err := installedDatasetMessage(ds)
 		if err != nil {
 			pErr("%v\n", err)
@@ -80,16 +82,18 @@ func getCmd(c *commander.Command, args []string) error {
 	return nil
 }
 
-func GetDataset(dataset string) error {
+func GetDataset(dataset string) (string, error) {
 	dataset = strings.ToLower(dataset)
 
 	// add lookup in datadex here.
 	h := NewHandle(dataset)
 	if h.Valid() {
-		return GetDatasetFromIndex(h)
+		// handle version can get resolved
+		err := GetDatasetFromIndex(h)
+		return h.Dataset(), err
 	}
 
-	return fmt.Errorf("Unclear how to handle dataset identifier: %s", dataset)
+	return "", fmt.Errorf("Unclear how to handle dataset identifier: %s", dataset)
 }
 
 func GetDatasetFromIndex(h *Handle) error {
@@ -107,7 +111,7 @@ func GetDatasetFromIndex(h *Handle) error {
 	}
 
 	// Prepare local directories
-	dir := path.Join(DatasetDir, h.Path())
+	dir := h.InstallPath()
 	if err := os.RemoveAll(dir); err != nil {
 		return err
 	}
@@ -148,13 +152,10 @@ func GetDatasetFromIndex(h *Handle) error {
 }
 
 func (d *DataIndex) handleRef(h *Handle) (string, error) {
-	v := h.Version
-	if len(v) == 0 {
-		v = RefLatest
-	}
-
 	ri := d.RefIndex(h.Path())
-	ref, err := ri.VersionRef(v)
+
+	// Fetch refs first.
+	err := ri.FetchRefs(false)
 	if err != nil {
 		if strings.Contains(err.Error(), "404 page not found") {
 			return "", fmt.Errorf("Error: %v not found.", h.Dataset())
@@ -162,6 +163,17 @@ func (d *DataIndex) handleRef(h *Handle) (string, error) {
 		return "", fmt.Errorf("Error finding manifest for %v. %s", h.Dataset(), err)
 	}
 
+	// Resolve named version first.
+	h.Version, err = ri.RefVersion(h.Version)
+	if err != nil {
+		return "", fmt.Errorf("Error finding version %v. %s", h.Dataset(), err)
+	}
+
+	// Resolve ref.
+	ref, err := ri.VersionRef(h.Version)
+	if err != nil {
+		return "", fmt.Errorf("Error finding manifest for %v. %s", h.Dataset(), err)
+	}
 	return ref, nil
 }
 
@@ -171,7 +183,7 @@ func downloadManifest(d *DataIndex, ref string) error {
 
 func installedDatasetMessage(dataset string) error {
 	h := NewHandle(dataset)
-	fpath := DatafilePath(h.Path())
+	fpath := DatafilePath(h.Dataset())
 	df, err := NewDatafile(fpath)
 	if err != nil {
 		return err
