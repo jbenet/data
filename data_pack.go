@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/gonuts/flag"
 	"github.com/jbenet/commander"
+	"os"
+	"path"
 	"strings"
 )
 
@@ -309,7 +311,10 @@ func (p *Pack) Make(clean bool) error {
 
 	// fill out datafile defaults.
 	if len(p.datafile.Dataset) == 0 {
-		p.datafile.Dataset = configUser() + "/@1.0"
+		cwd, _ := os.Getwd()
+		cwd = path.Base(cwd)
+		name := identString(cwd)
+		p.datafile.Dataset = configUser() + "/" + name + "@1.0"
 	}
 
 	// ensure the dataset has required information

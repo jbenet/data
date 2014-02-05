@@ -136,6 +136,11 @@ func copyFile(src string, dst string) error {
 	return cmd.Run()
 }
 
+// clean up ident string
+func identString(ident string) string {
+	return NonIdentRegexp.ReplaceAllString(ident, "")
+}
+
 // remove duplicates in a string slice
 func set(slice []string) []string {
 	dedup := []string{}
