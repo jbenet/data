@@ -1,7 +1,8 @@
 # data changelog
 
-## v0.1.1 2014-02-
+## v0.1.1 2014-02-05
 
+- data help: groups commands
 - publish guide messages
 - default dataset id to cwd basename
 - changed Manifest -> .data/Manifest filename
