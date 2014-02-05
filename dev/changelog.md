@@ -2,6 +2,9 @@
 
 ## v0.1.1 2014-02-
 
+- publish guide messages
+- default dataset id to cwd basename
+- changed Manifest -> .data/Manifest filename
 - data get: install path is handle
 - data get: no littering if not found
 - data blob: creates dir(path)
