@@ -155,7 +155,8 @@ var cmd_data_pack_publish = &commander.Command{
 
     See 'data pack'.
   `,
-	Run: packPublishCmd,
+	Run:  packPublishCmd,
+	Flag: *flag.NewFlagSet("data-pack-publish", flag.ExitOnError),
 }
 
 var cmd_data_pack_check = &commander.Command{
@@ -175,6 +176,7 @@ var cmd_data_pack_check = &commander.Command{
 
 func init() {
 	cmd_data_pack_make.Flag.Bool("clean", false, "make pack from scratch")
+	cmd_data_pack_publish.Flag.Bool("force", false, "overwrite published version")
 }
 
 func packMakeCmd(c *commander.Command, args []string) error {
@@ -223,7 +225,8 @@ func packPublishCmd(c *commander.Command, args []string) error {
 		return err
 	}
 
-	err = p.Publish(false)
+	force := c.Flag.Lookup("force").Value.Get().(bool)
+	err = p.Publish(force)
 	if err != nil {
 		if strings.Contains(err.Error(), "forbidden") {
 			u := configUser()
@@ -437,13 +440,17 @@ func (p *Pack) Publish(force bool) error {
 	}
 
 	if ref != "" {
-
+		pOut("Found published version %s (%.7s).\n", h.Version, ref)
 		if ref == mfh {
 			pOut(PublishedVersionSameMsg, h.Version, ref)
 			return nil
 		}
 
-		return fmt.Errorf(PublishedVersionDiffersMsg, h.Version, ref, h.Dataset())
+		if !force {
+			return fmt.Errorf(PublishedVersionDiffersMsg, h.Version, ref, h.Dataset())
+		}
+
+		pOut("Using --force. Overwriting %s (%.7s -> %.7s).\n", h.Version, ref, mfh)
 	}
 
 	// ok seems good to go.

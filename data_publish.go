@@ -18,12 +18,14 @@ var cmd_data_publish = &commander.Command{
     See 'data pack'.
   `,
 	Run:  publishCmd,
-	Flag: *flag.NewFlagSet("data-pack-make", flag.ExitOnError),
+	Flag: *flag.NewFlagSet("data-pack-publish", flag.ExitOnError),
 }
 
 func init() {
 	cmd_data_publish.Flag.Bool("clean", true,
 		"rebuild manifest (data pack make --clean)")
+	cmd_data_publish.Flag.Bool("force", true,
+		"force publish (data pack publish --force)")
 }
 
 func publishCmd(c *commander.Command, args []string) error {
