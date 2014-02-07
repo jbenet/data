@@ -24,7 +24,7 @@ var cmd_data_publish = &commander.Command{
 func init() {
 	cmd_data_publish.Flag.Bool("clean", true,
 		"rebuild manifest (data pack make --clean)")
-	cmd_data_publish.Flag.Bool("force", true,
+	cmd_data_publish.Flag.Bool("force", false,
 		"force publish (data pack publish --force)")
 }
 
