@@ -20,8 +20,8 @@ the [roadmap](dev/roadmap.md).
 ## Install
 
 Two ways to install:
-- [binary distributions](http://datadex.io/doc/install)
-- [from source](http://datadex.io/doc/source-install)
+- [from pre-built binary distributions](http://datadex.io/doc/install) (the easy way)
+- [from source](http://datadex.io/doc/source-install) (the hard way)
 
 ## Usage
 
