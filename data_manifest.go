@@ -510,6 +510,12 @@ func listAllFiles(path string) []string {
 			return nil
 		}
 
+		// skip hidden files
+		if strings.HasPrefix(info.Name(), ".") {
+			dOut("data manifest: skipping %s\n", info.Name())
+			return nil
+		}
+
 		files = append(files, path)
 		return nil
 	}
