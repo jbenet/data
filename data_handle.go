@@ -79,8 +79,9 @@ func (d *Handle) SetDataset(s string) {
 	fmt_idx := strings.LastIndex(s[nam_idx+1:ver_idx], ".")
 	if fmt_idx < 0 {
 		fmt_idx = ver_idx // no format in handle.
+	} else {
+		fmt_idx += nam_idx + 1
 	}
-	fmt_idx += nam_idx + 1
 
 	// parts
 	d.Author = slice(s, 0, nam_idx)
