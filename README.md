@@ -155,9 +155,12 @@ Setup:
 1. [install go](http://golang.org/doc/install)
 2. Run
 
-    git clone https://github.com/jbenet/data
-    cd data
-    make install
+```
+git clone https://github.com/jbenet/data
+cd data
+make deps
+make install
+```
 
 You'll want to run [datadex](https://github.com/jbenet/datadex) too.
 
