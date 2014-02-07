@@ -232,7 +232,7 @@ func packPublishCmd(c *commander.Command, args []string) error {
 			u := configUser()
 			d := p.datafile.Handle().Path()
 			o := p.datafile.Handle().Author
-			return fmt.Errorf(PublishingForbiddenMsg, u, d, o)
+			return fmt.Errorf(PublishingForbiddenMsg, u, d, o, err.Error())
 		}
 		return err
 	}
@@ -429,12 +429,18 @@ func (p *Pack) Publish(force bool) error {
 	ri := p.index.RefIndex(h.Path())
 	ref, err := ri.VersionRef(h.Version)
 	if err != nil {
-		if strings.Contains(err.Error(), "connection refused") {
+		switch {
+		// http errors fail.
+		case strings.Contains(err.Error(), "connection refused"):
 			return fmt.Errorf(NetErrMsg, p.index.Http.Url)
-		}
+
+		// ok if no ref for version.
+		case strings.Contains(err.Error(), "No ref for version"):
 
 		// ok if not found.
-		if !strings.Contains(err.Error(), "HTTP error status code: 404") {
+		case strings.Contains(err.Error(), "HTTP error status code: 404"):
+
+		default:
 			return err
 		}
 	}
@@ -482,7 +488,8 @@ your work here is done :)
 
 const PublishingForbiddenMsg = `You (%s) lack permissions to publish to %s.
 Either, fork your own copy of the dataset (see 'data fork').
-Or ask the owner (%s) for collaboration privileges.`
+Or ask the owner (%s) for collaboration privileges.
+(%s)`
 
 const NetErrMsg = `Connection to the index refused.
 Are you connected to the internet?
