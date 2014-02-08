@@ -29,13 +29,13 @@ func init() {
 }
 
 func publishCmd(c *commander.Command, args []string) error {
-	pOut("==> Guided Data Package Publishing.\n")
-	pOut(PublishMsgWelcome)
-
 	u := configUser()
 	if !isNamedUser(u) {
 		return fmt.Errorf(NotLoggedInErr)
 	}
+
+	pOut("==> Guided Data Package Publishing.\n")
+	pOut(PublishMsgWelcome)
 
 	pOut("\n==> Step 1/3: Creating the package.\n")
 	pOut(PublishMsgDatafile)
