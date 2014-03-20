@@ -13,4 +13,9 @@ will have a vm in this directory. The process, then, is:
 
 ## TODO
 
+
+Add VMs:
+
 - Windows: http://www.modern.ie/en-us/virtualization-tools#downloads
+- Darwin
+- BSD
