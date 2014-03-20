@@ -10,3 +10,7 @@ will have a vm in this directory. The process, then, is:
 1. compile + test data in vm
 1. place release binary in `/platforms/<arch>/data`
 1. `make <arch>-tar` + `make dist` to package bins up
+
+## TODO
+
+- Windows: http://www.modern.ie/en-us/virtualization-tools#downloads
