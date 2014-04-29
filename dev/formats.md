@@ -26,6 +26,8 @@ So far, I like 2 and 3 the best. 2 implies building [3] below, or at least a sub
 
 [2] think of docker images. datasets can be expressed as instructions that construct it (some files from foo/dataset1 + some from bar/dataset2). This implies that a selecting sub-portions of a dataset could be a really useful mechanic.[3]
 
+### selecting
+
 [3] imagine selecting [n-m] rows of a given dataset. Unclear yet how this should work exactly, but i've ideas along a dataset intermediate representation (DIR), where data is expressed as points in a multi-dimensional space, and a dataset is expressed as a subspace, or intervals across some dimensions. This would work well even for tables, allowing one to select slices of a dataset with something like: <author>/<dataset>#<dimension>[:<low>[:<high>]]` e.g.
 
     lecun/norb#class          # points that have a class
