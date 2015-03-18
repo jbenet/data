@@ -166,7 +166,7 @@ You'll want to run [datadex](https://github.com/jbenet/datadex) too.
 
 ## About
 
-This project started because data management is a massive problem in science*.
+This project started because data management is a massive problem in science.
 It should be **trivial** to (a) find, (b) download, (c) track, (d) manage,
 (e) re-format, (f) publish, (g) cite, and (h) collaborate on datasets. Data
 management is a problem in other domains (engineering, civics, etc), and `data`
